@@ -31,5 +31,8 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 # Add Laravel permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Expose Render port
+EXPOSE 10000
+
 # Start PHP server (Render will expose port 10000)
 CMD php artisan serve --host=0.0.0.0 --port=10000
