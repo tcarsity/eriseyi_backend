@@ -9,19 +9,26 @@ use Illuminate\Support\Facades\Hash;
 
 class SuperAdminSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+    public function run()
     {
-        // Only one super admin
-        if(!User::where('role', 'superadmin')->exists()) {
-            User::create([
-                'name' => 'Super Admin',
-                'email' => 'superadmin@example.com',
-                'password' => Hash::make('orisunayo2006'),
-                'role' => 'superadmin'
-            ]);
+        $email = env('SEED_SUPERADMIN_EMAIL', 'superadmin@example.com');
+
+        $exists = User::where('email', $email)->first();
+        if ($exists) {
+            $this->command->info("Superadmin already exists: {$email}");
+            return;
         }
+
+        User::create([
+            'name' => env('SEED_SUPERADMIN_NAME', 'Super Admin'),
+            'email' => $email,
+            'password' => Hash::make(env('SEED_SUPERADMIN_PASSWORD', 'orisunayo2006')),
+            'role' => 'superadmin',
+            'status' => 'active',
+        ]);
+
+        $this->command->info("Superadmin created: {$email}");
     }
 }
+
+
