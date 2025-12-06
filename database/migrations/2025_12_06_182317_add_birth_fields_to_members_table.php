@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::table('members', function (Blueprint $table) {
 
-            $table->string('birth_month');
-            $table->integer('birth_date');
+            $table->string('birth_month')->default('January');
+            $table->integer('birth_date')->default(1);
         });
     }
 
