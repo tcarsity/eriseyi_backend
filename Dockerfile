@@ -31,10 +31,15 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 # Add Laravel permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Copy entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose Render port
 EXPOSE 10000
 
+# Use ENTRYPOINT instead of CMD for migrations
+ENTRYPOINT ["entrypoint.sh"]
+
 # Start PHP server (Render will expose port 10000)
-CMD php artisan migrate --force && \
-    php artisan db:seed --force && \
-    php artisan serve --host=0.0.0.0 --port=10000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
