@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('members', function (Blueprint $table) {
-            //
             $table->foreignId('created_by')
-            ->nullable()
-            ->constrained('users')
-            ->nullOnDelete();
+                  ->nullable()
+                  ->constrained('users')
+                  ->nullOnDelete();
         });
     }
 
@@ -26,9 +25,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('members', function (Blueprint $table) {
-            //
-            $table->dropForeign(['created_by']);
-            $table->dropColumn('created_by');
+             $table->dropForeign(['created_by']);
+             $table->dropColumn('created_by');
         });
     }
 };

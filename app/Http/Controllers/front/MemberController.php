@@ -36,7 +36,10 @@ class MemberController extends Controller
             ]);
 
 
-            $member = Member::create($validator);
+            $member = Member::create([
+                ...$validator,
+                'created_by' => null,
+            ]);
 
             return (new MemberResource($member))
             ->additional(['message' => 'Member added successfully']);
@@ -57,9 +60,12 @@ class MemberController extends Controller
 
             // Add created_by
 
-            $validator['created_by'] = Auth::id();
 
-            $member = Member::create($validator);
+
+            $member = Member::create([
+                ...$validator,
+                'created_by' => auth()->id(),
+            ]);
 
             log_admin_activity('created_member', "Added member: {$member->name}");
 
