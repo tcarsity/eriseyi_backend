@@ -15,8 +15,7 @@ class Member extends Model
         'address',
         'gender',
         'birth_month',
-        'birth_day',
-        'status',
+        'birth_date',
         'created_by'
     ];
 

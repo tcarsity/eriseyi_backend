@@ -32,7 +32,7 @@ class MemberController extends Controller
                 'address' => 'required|string|max:500',
                 'gender' => 'required|in:male,female',
                 'birth_month' => 'required|string',
-                'birth_day' => 'required|integer'
+                'birth_date' => 'required|integer'
             ]);
 
 
@@ -54,7 +54,7 @@ class MemberController extends Controller
                 'address' => 'required|string|max:500',
                 'gender' => 'required|in:male,female',
                 'birth_month' => 'required|string',
-                'birth_day' => 'required|integer'
+                'birth_date' => 'required|integer'
             ]);
 
 
