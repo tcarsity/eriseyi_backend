@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 
-Route::post('/members', [MemberController::class, 'publicStore']);
+Route::post('/members/public', [MemberController::class, 'publicStore']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/public-testimonials', [TestimonialController::class, 'index']);
 
@@ -54,7 +54,10 @@ Route::middleware(['auth:sanctum', 'last_seen'])->group(function () {
     Route::middleware('role:superadmin,admin')->group(function () {
         Route::get('/dashboard-stats', [SuperAdminDashboardController::class, 'getStats']);
         Route::get('/members/search', [MemberController::class, 'searchMember']);
-        Route::apiResource('members', MemberController::class)->except(['store']);
+        Route::get('/members', [MemberController::class, 'index']);
+        Route::get('/members/{member}', [MemberController::class, 'show']);
+        Route::put('/members/{member}', [MemberController::class, 'update']);
+        Route::delete('/members/{member}', [MemberController::class, 'destroy']);
         Route::post('/members/admin', [MemberController::class, 'adminStore']);
         Route::apiResource('testimonials', TestimonialController::class);
         Route::post('/events', [EventController::class, 'store']);
@@ -65,8 +68,6 @@ Route::middleware(['auth:sanctum', 'last_seen'])->group(function () {
         Route::get('/admin/activities', [AdminActivityController::class, 'index']);
         Route::get('/admin/activities/performance', [AdminActivityController::class, 'performance']);
         Route::put('/profile', [AdminController::class, 'updateProfile']);
-
-
 
     });
 
