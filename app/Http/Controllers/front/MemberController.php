@@ -90,7 +90,7 @@ class MemberController extends Controller
             'address' => 'sometimes|string|max:500',
             'gender' => 'sometimes|in:male,female',
             'birth_month' => 'sometimes|string',
-            'birth_day' => 'sometimes|integer'
+            'birth_date' => 'sometimes|integer'
         ]);
 
         try{
