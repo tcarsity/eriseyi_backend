@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\admin;
 
+use App\Helpers\SupabaseStorage;
 use App\Models\Testimonial;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -24,14 +25,11 @@ class TestimonialController extends Controller
         return TestimonialResource::collection($testimonials);
     }
 
-
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
         $validator = $request->validate([
             'author' => 'required|string|max:255',
             'designation' => 'nullable|string|max:255',
@@ -40,33 +38,41 @@ class TestimonialController extends Controller
         ]);
 
         //  Count how many testimonials already exist
-
         $testimonialCount = Testimonial::count();
 
         if($testimonialCount >= 4){
             // Delete the oldest testimonial
             $oldest = Testimonial::oldest()->first();
 
-            if($oldest->image && file_exists(public_path('uploads/testimonials/' . $oldest->image))){
-                unlink(public_path('uploads/testimonials/' . $oldest->image));
+            if($oldest->image ){
+                SupabaseStorage::delete($oldest->image);
             }
 
             $oldest->delete();
         }
-
 
        $testimonial = new Testimonial();
        $testimonial->fill(Arr::except($validator, ['image']));
 
        if($request->hasFile('image')) {
             $file = $request->file('image');
-            $fileName = Str::uuid() . '.' .$file->getClientOriginalExtension();
+
+            $tempName = Str::uuid() . "." . $file->getClientOriginalExtension();
+            $tempPath = storage_path("app/temp/" . $tempName);
+
+            if(!is_dir(dirname($tempPath))) {
+                mkdir(dirname($tempPath), 0755, true);
+            }
 
             Image::read($file)
                 ->resize(300, 300)
-                ->save(public_path('uploads/testimonials/' . $fileName));
+                ->save($tempPath);
 
-            $testimonial->image = $fileName;
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "testimonials");
+
+            $testimonial->image = $publicUrl;
+
+            @unlink($tempPath);
        }
 
        $testimonial->save();
@@ -101,20 +107,35 @@ class TestimonialController extends Controller
 
         if($request->hasFile('image')){
             // delete old image if exists
-            if($testimonial->image && File::exists(public_path('uplaods/testimonials/'. $testimonial->image))){
-                File::delete(public_path('uploads/testimonials/' . $testimonial->image));
-            }
+            if($testimonial->image){
+              $relativePath = str_replace(env('SUPABASE_URL').'/storage/v1/object/public/'.env('SUPABASE_BUCKET').'/', '', $testimonial->image);
+
+            // Call Supabase delete endpoint
+            Http::withHeaders([
+                'apikey' => env('SUPABASE_KEY'),
+                'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+            ])->delete(env('SUPABASE_URL')."/storage/v1/object/".env('SUPABASE_BUCKET')."/".$relativePath);
+        }
 
             $file = $request->file('image');
-            $fileName = Str::uuid() . '.' .$file->getClientOriginalExtension();
+            $tempName = Str::uuid() . "." . $file->getClientOriginalExtension();
+            $tempPath = storage_path("app/temp/" . $tempName);
+
+            if(!is_dir(dirname($tempPath))) {
+                mkdir(dirname($tempPath), 0755, true);
+            }
 
             Image::read($file)
                 ->resize(300,300, function ($constraint) {
                     $constraint->aspectRatio();
                     $constraint->upsize();
-                })->save(public_path('uploads/testimonials/' . $fileName));
+                })->save($tempPath);
 
-                $testimonial->image =  $fileName;
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "testimonials");
+
+            $testimonial->image = $publicUrl;
+
+            @unlink($tempPath);
         }
 
             $testimonial->save();
@@ -129,11 +150,20 @@ class TestimonialController extends Controller
      */
     public function destroy(Testimonial $testimonial)
     {
-        $imagePath = public_path('uploads/testimonials/' .basename($testimonial->image));
+        if($testimonial->image) {
+        // Convert full public URL → relative path inside bucket
+        $relativePath = str_replace(
+            env('SUPABASE_URL').'/storage/v1/object/public/'.env('SUPABASE_BUCKET').'/',
+            '',
+            $testimonial->image
+        );
 
-        if($testimonial->image && file_exists($imagePath)){
-            unlink($imagePath);
-        }
+        // Delete from Supabase
+        Http::withHeaders([
+            'apikey' => env('SUPABASE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+        ])->delete(env('SUPABASE_URL')."/storage/v1/object/".env('SUPABASE_BUCKET')."/".$relativePath);
+    }
 
         log_admin_activity('deleted_testimonial', "Deleted testimonial: {$testimonial->author}");
 

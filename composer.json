@@ -33,7 +33,8 @@
         },
         "files": [
             "app/Helpers/ActivityHelper.php",
-            "app/Helpers/security_log_helper.php"
+            "app/Helpers/security_log_helper.php",
+            "app/Helpers/SupabaseStorage.php"
         ]
     },
     "autoload-dev": {

@@ -22,11 +22,6 @@ class EventController extends Controller
         return EventResource::collection($events);
     }
 
-    public function show(Event $event)
-    {
-        return new EventResource($event);
-    }
-
 
     public function store(Request $request)
     {
@@ -45,28 +40,31 @@ class EventController extends Controller
         $data['created_by'] = Auth::id();
 
         if($request->hasFile('image')){
-            $path = public_path('uploads/events');
-
-
-            // create folder if it doesnt exist
-            if(!file_exists($path)) {
-                mkdir($path, 0777, true);
-            }
 
             $image = $request->file('image');
-            $filename = 'event_' . Str::random(8) . '.' . $image->getClientOriginalExtension();
+            $tempName = 'event_' . Str::random(8) . '.' . $image->getClientOriginalExtension();
+            $tempPath = storage_path("app/temp/" . $tempName);
+
+            // ensure temp directory exists
+            if (!is_dir(dirname($tempPath))) {
+                mkdir(dirname($tempPath), 0775, true);
+            }
 
             // resize / compress using intervention
             $img = Image::read($image->getRealPath())
             ->resize(600, null, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
-            });
+            })
 
             // save compressed version
-            $img->save($path . '/' . $filename, 85);
+            ->save($tempPath, 85);
 
-            $data['image'] = 'uploads/events/' . $filename;
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
+
+            $data['image'] = $publicUrl;
+
+            unlink($tempPath);
 
         }
         // create new event record
@@ -80,6 +78,12 @@ class EventController extends Controller
         ])
         ->response()
         ->setStatusCode(201);
+    }
+
+
+    public function show(Event $event)
+    {
+        return new EventResource($event);
     }
 
 
@@ -101,32 +105,33 @@ class EventController extends Controller
 
 
         if($request->hasFile('image')){
-            //Delete old image if it exists
-            if($event->image && file_exists(public_path($event->image))) {
-                File::delete(public_path($event->image));
-            }
+            // delete old image from supabase
+            // (optional — depends if you want deletion)
+            // Supabase does not auto-delete old files
 
-            //create folder if not exists
-            $path = public_path('uploads/events');
-            if(!file_exists($path)){
-                mkdir($path, 0777, true);
-            }
-
-            // process new image
+            // temp file for intervention
             $image = $request->file('image');
-            $filename = 'event_' . Str::random(8) . '.' . $image->getClientOriginalExtension();
+            $tempName = 'event_' . Str::random(8) . '.' . $image->getClientOriginalExtension();
+            $tempPath = storage_path("app/temp/" . $tempName);
+
+            if (!is_dir(dirname($tempPath))) {
+                mkdir(dirname($tempPath), 0775, true);
+            }
+
 
             //Resize /compress using intervention
             $img = Image::read($image->getRealPath())
             ->resize(600, null, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
-            });
+            })
+            ->save($tempPath, 85);
 
-            // save compressed version
-            $img->save($path . '/' . $filename, 85);
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
 
-            $data['image'] = 'uploads/events/' . $filename;
+            $data['image'] = $publicUrl;
+
+            unlink($tempPath);
         }
 
         $event->update($data);
@@ -143,12 +148,20 @@ class EventController extends Controller
 
     public function destroy(Event $event)
     {
-        $uplaodPath = public_path('uploads/events');
+        if($event->image) {
+        // Convert full public URL → relative path inside bucket
+        $relativePath = str_replace(
+            env('SUPABASE_URL').'/storage/v1/object/public/'.env('SUPABASE_BUCKET').'/',
+            '',
+            $event->image
+        );
 
-        //Delete event image from storage if it exist
-        if($event->image && File::exists($uplaodPath . '/' . basename($event->image))) {
-            File::delete($uplaodPath . '/' . basename($event->image));
-        }
+        // Delete from Supabase
+        Http::withHeaders([
+            'apikey' => env('SUPABASE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+        ])->delete(env('SUPABASE_URL')."/storage/v1/object/".env('SUPABASE_BUCKET')."/".$relativePath);
+    }
 
         log_admin_activity('deleted_event', "Deleted event: {$event->title}");
 
