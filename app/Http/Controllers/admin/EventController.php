@@ -41,8 +41,8 @@ class EventController extends Controller
 
         if($request->hasFile('image')){
 
-            $image = $request->file('image');
-            $tempName = 'event_' . Str::random(8) . '.' . $image->getClientOriginalExtension();
+            $file = $request->file('image');
+            $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             // ensure temp directory exists
@@ -51,7 +51,7 @@ class EventController extends Controller
             }
 
             // resize / compress using intervention
-            $img = Image::read($image->getRealPath())
+            $img = Image::read($file->getRealPath())
             ->resize(600, null, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
@@ -60,7 +60,7 @@ class EventController extends Controller
             // save compressed version
             ->save($tempPath, 85);
 
-            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
+            $publicUrl = SupabaseStorage::upload($file, "events");
 
             $data['image'] = $publicUrl;
 
@@ -110,8 +110,8 @@ class EventController extends Controller
             // Supabase does not auto-delete old files
 
             // temp file for intervention
-            $image = $request->file('image');
-            $tempName = 'event_' . Str::random(8) . '.' . $image->getClientOriginalExtension();
+            $file = $request->file('image');
+            $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             if (!is_dir(dirname($tempPath))) {
@@ -120,14 +120,14 @@ class EventController extends Controller
 
 
             //Resize /compress using intervention
-            $img = Image::read($image->getRealPath())
+            $img = Image::read($file->getRealPath())
             ->resize(600, null, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             })
             ->save($tempPath, 85);
 
-            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
+            $publicUrl = SupabaseStorage::upload($file, "events");
 
             $data['image'] = $publicUrl;
 
