@@ -12,7 +12,7 @@ class SupabaseStorage
         $supabaseKey = env('SUPABASE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
-        $fileName = time() . '_' . $file->getClientOriginalName();
+        $fileName = time() . '_' . basename($file);
         $fullPath = $path . '/' . $fileName;
 
         $response = Http::withHeaders([

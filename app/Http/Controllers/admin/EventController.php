@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\admin;
 
+use App\Helpers\SupabaseStorage;
 use App\Models\Event;
 use App\Http\Resources\EventResource;
 use Intervention\Image\Laravel\Facades\Image;
@@ -60,7 +61,7 @@ class EventController extends Controller
             // save compressed version
             ->save($tempPath, 85);
 
-            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
+            $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
             $data['image'] = $publicUrl;
 
@@ -127,7 +128,7 @@ class EventController extends Controller
             })
             ->save($tempPath, 85);
 
-            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
+            $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
             $data['image'] = $publicUrl;
 
