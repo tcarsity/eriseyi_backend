@@ -15,10 +15,12 @@ class SupabaseStorage
         $fileName = time() . '_' . basename($file);
         $fullPath = $path . '/' . $fileName;
 
+        $mime = mime_content_type($file);
+
         $response = Http::withHeaders([
             'apikey' => $supabaseKey,
             'Authorization' => 'Bearer ' . $supabaseKey,
-            'Content-Type' => $file->getClientMimeType(),
+            'Content-Type' => $mime,
             'x-upsert' => 'true',
         ])->put(
             "{$supabaseUrl}/storage/v1/object/{$bucket}/{$fullPath}",
