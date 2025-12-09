@@ -68,7 +68,7 @@ class TestimonialController extends Controller
                 ->resize(300, 300)
                 ->save($tempPath);
 
-            $publicUrl = SupabaseStorage::upload($file, "testimonials");
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "testimonials");
 
             $testimonial->image = $publicUrl;
 
@@ -131,7 +131,7 @@ class TestimonialController extends Controller
                     $constraint->upsize();
                 })->save($tempPath);
 
-            $publicUrl = SupabaseStorage::upload($file, "testimonials");
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "testimonials");
 
             $testimonial->image = $publicUrl;
 

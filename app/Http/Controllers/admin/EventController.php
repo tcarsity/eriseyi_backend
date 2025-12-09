@@ -60,7 +60,7 @@ class EventController extends Controller
             // save compressed version
             ->save($tempPath, 85);
 
-            $publicUrl = SupabaseStorage::upload($file, "events");
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
 
             $data['image'] = $publicUrl;
 
@@ -127,7 +127,7 @@ class EventController extends Controller
             })
             ->save($tempPath, 85);
 
-            $publicUrl = SupabaseStorage::upload($file, "events");
+            $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "events");
 
             $data['image'] = $publicUrl;
 
