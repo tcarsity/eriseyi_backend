@@ -6,16 +6,16 @@ use Illuminate\Support\Facades\Http;
 
 class SupabaseStorage
 {
-    public static function upload($file, $path)
+    public static function upload($filePath, $path)
     {
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
-        $fileName = time() . '_' . basename($file);
+        $fileName = time() . '_' . basename($filePath);
         $fullPath = $path . '/' . $fileName;
 
-        $mime = mime_content_type($file);
+        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $filePath);
 
         $response = Http::withHeaders([
             'apikey' => $supabaseKey,
@@ -24,7 +24,7 @@ class SupabaseStorage
             'x-upsert' => 'true',
         ])->put(
             "{$supabaseUrl}/storage/v1/object/{$bucket}/{$fullPath}",
-            file_get_contents($file)
+            file_get_contents($filePath)
         );
 
         if (!$response->successful()) {
