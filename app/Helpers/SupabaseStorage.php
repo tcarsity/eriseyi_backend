@@ -12,7 +12,8 @@ class SupabaseStorage
         $supabaseKey = env('SUPABASE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
-        $fileName = time() . '_' . basename($filePath);
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        $fileName = time() . '_' . uniqid() . '.' . $extension;
         $fullPath = $path . '/' . $fileName;
 
         $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $filePath);

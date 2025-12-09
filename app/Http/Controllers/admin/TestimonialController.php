@@ -68,11 +68,19 @@ class TestimonialController extends Controller
                 ->resize(300, 300)
                 ->save($tempPath);
 
-            $publicUrl = SupabaseStorage::upload($tempPath, "testimonials");
+            try{
+                $publicUrl = SupabaseStorage::upload($tempPath, "testimonials");
 
-            $testimonial->image = $publicUrl;
+                $testimonial->image = $publicUrl;
 
-            @unlink($tempPath);
+                @unlink($tempPath);
+            }catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Upload failed',
+                    'details' => $e->getMessage()
+                ], 500);
+            }
+
        }
 
        $testimonial->save();
