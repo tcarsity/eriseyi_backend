@@ -57,14 +57,14 @@ class TestimonialController extends Controller
        if($request->hasFile('image')) {
             $file = $request->file('image');
 
-            $tempName = Str::uuid() . "." . $file->getClientOriginalExtension();
+            $tempName = Str::uuid() . "." . $file->getRealPath();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             if(!is_dir(dirname($tempPath))) {
                 mkdir(dirname($tempPath), 0755, true);
             }
 
-            Image::read($file->getRealPath())
+            Image::read($file)
                 ->resize(300, 300)
                 ->save($tempPath);
 
@@ -126,14 +126,14 @@ class TestimonialController extends Controller
         }
 
             $file = $request->file('image');
-            $tempName = Str::uuid() . "." . $file->getClientOriginalExtension();
+            $tempName = Str::uuid() . "." . $file->getRealPath();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             if(!is_dir(dirname($tempPath))) {
                 mkdir(dirname($tempPath), 0755, true);
             }
 
-            Image::read($file->getRealPath())
+            Image::read($file)
                 ->resize(300,300, function ($constraint) {
                     $constraint->aspectRatio();
                     $constraint->upsize();
