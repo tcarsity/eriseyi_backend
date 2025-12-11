@@ -8,6 +8,12 @@ class SupabaseStorage
 {
     public static function upload($filePath, $path)
     {
+
+        if($filePath instanceof \Illuminate\Http\File)
+        {
+            $filePath = $filePath->getPathname();
+        }
+
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $bucket = env('SUPABASE_BUCKET');
