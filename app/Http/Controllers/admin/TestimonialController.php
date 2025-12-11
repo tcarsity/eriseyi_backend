@@ -57,7 +57,7 @@ class TestimonialController extends Controller
        if($request->hasFile('image')) {
             $file = $request->file('image');
 
-            $tempName = Str::uuid() . "." . $file->getRealPath();
+            $tempName = Str::uuid() . "." . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             if(!is_dir(dirname($tempPath))) {
@@ -126,7 +126,7 @@ class TestimonialController extends Controller
         }
 
             $file = $request->file('image');
-            $tempName = Str::uuid() . "." . $file->getRealPath();
+            $tempName = Str::uuid() . "." . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             if(!is_dir(dirname($tempPath))) {
