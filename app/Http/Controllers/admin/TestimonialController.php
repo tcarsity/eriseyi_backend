@@ -77,7 +77,7 @@ class TestimonialController extends Controller
             }catch (\Exception $e) {
                 return response()->json([
                     'error' => 'Upload failed',
-                    'details' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ], 500);
             }
 
