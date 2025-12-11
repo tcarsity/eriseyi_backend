@@ -64,7 +64,7 @@ class TestimonialController extends Controller
                 mkdir(dirname($tempPath), 0755, true);
             }
 
-            Image::read($file)
+            Image::read($file->getRealPath())
                 ->resize(300, 300)
                 ->save($tempPath);
 
@@ -133,7 +133,7 @@ class TestimonialController extends Controller
                 mkdir(dirname($tempPath), 0755, true);
             }
 
-            Image::read($file)
+            Image::read($file->getRealPath())
                 ->resize(300,300, function ($constraint) {
                     $constraint->aspectRatio();
                     $constraint->upsize();

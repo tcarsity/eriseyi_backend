@@ -16,7 +16,9 @@ class SupabaseStorage
         $fileName = time() . '_' . uniqid() . '.' . $extension;
         $fullPath = $path . '/' . $fileName;
 
-        $mime = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $filePath);
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $filePath);
+        finfo_close($finfo);
 
         $response = Http::withHeaders([
             'apikey' => $supabaseKey,
