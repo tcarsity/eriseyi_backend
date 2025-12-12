@@ -11,6 +11,7 @@ use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class TestimonialController extends Controller
 {
@@ -75,6 +76,9 @@ class TestimonialController extends Controller
 
                 @unlink($tempPath);
             }catch (\Exception $e) {
+                \Log::error("Upload failed: " . $e->getMessage());
+
+
                 return response()->json([
                     'error' => 'Upload failed',
                     'message' => $e->getMessage()
