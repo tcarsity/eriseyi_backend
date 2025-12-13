@@ -17,7 +17,7 @@ class MemberResource extends JsonResource
                 'address' => $this->address,
                 'gender' => $this->gender,
                 'birth_month' => $this->birth_month,
-                'birth_day' => $this->birth_day,
+                'birth_date' => $this->birth_date,
                 'created_at' => $this->created_at,
                 'created_by' => $this->created_by
             ];
