@@ -26,7 +26,7 @@ class SupabaseStorage
 
         $response = Http::withHeaders([
             'apikey' => $supabaseKey,
-            'Authorization' => 'Bearer ' . $supabaseKey,
+            'Authorization' => "Bearer {$supabaseKey}",
             'Content-Type' => $mime,
             'x-upsert' => 'true',
         ])->put(
