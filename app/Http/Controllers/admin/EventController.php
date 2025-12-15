@@ -36,14 +36,14 @@ class EventController extends Controller
         ]);
 
         // prepare base data (excluding image for now)
-        $data->fill(Arr::except($validated, ['image']));
-        $data['title'] = Str::title($data['title']);
-        $data['created_by'] = Auth::id();
+        $event->fill(Arr::except($validated, ['image']));
+        $event['title'] = Str::title($validated['title']);
+        $event['created_by'] = Auth::id();
 
         if($request->hasFile('image')){
 
             $file = $request->file('image');
-            $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $tempName = Str::uuid() . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             // ensure temp directory exists
@@ -55,13 +55,13 @@ class EventController extends Controller
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
-            $data['image'] = $publicUrl;
+            $event->image = $publicUrl;
 
             unlink($tempPath);
 
         }
         // create new event record
-        $event = Event::create($data);
+        $event->save();
 
         log_admin_activity('created_event', "Added event: {$event->title}");
 
