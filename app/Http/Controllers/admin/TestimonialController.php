@@ -70,7 +70,7 @@ class TestimonialController extends Controller
                 ->save($tempPath);
 
             try{
-                $publicUrl = SupabaseStorage::upload(new \Illuminate\Http\File($tempPath), "testimonials");
+                $publicUrl = SupabaseStorage::upload($tempPath, "testimonials");
 
                 $testimonial->image = $publicUrl;
 

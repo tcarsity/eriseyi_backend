@@ -6,17 +6,18 @@ use Illuminate\Support\Facades\Http;
 
 class SupabaseStorage
 {
-    public static function upload($file, $path)
+    public static function upload(string $filePath, string $path)
     {
 
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
-        // $file is an UploadedFile or Illuminate\Http\File
-        $filePath = $file->getPathname();
-        $extension = $file->getClientOriginalExtension();
+        if (!file_exists($filePath)) {
+            throw new \Exception("Temp file not found: {$filePath}");
+        }
 
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
         $fileName = time() . '_' . uniqid() . '.' . $extension;
         $fullPath = "$path/$fileName";
 
