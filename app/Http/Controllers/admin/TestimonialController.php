@@ -74,10 +74,7 @@ class TestimonialController extends Controller
 
                 @unlink($tempPath);
             }catch (\Exception $e) {
-                \Log::error("Supabase upload failed", [
-                    'error' => $e->getMessage()
-                ]);
-
+                \Log::error($e->getMessage());
 
                 return response()->json([
                     'error' => 'Upload failed'
