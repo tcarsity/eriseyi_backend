@@ -36,7 +36,7 @@ class EventController extends Controller
         ]);
 
         // prepare base data (excluding image for now)
-        $data = Arr::except($validated, ['image']);
+        $data->fill(Arr::except($validated, ['image']));
         $data['title'] = Str::title($data['title']);
         $data['created_by'] = Auth::id();
 
@@ -93,25 +93,23 @@ class EventController extends Controller
 
 
         // prepare base data (excluding image for now)
-        $data = Arr::except($validated, ['image']);
+        $data->fill(Arr::except($validated, ['image']));
         $data['title'] = Str::title($validated['title']);
 
 
         if($request->hasFile('image')){
 
-             $oldImage = $data->image; // keep old image
+            $oldImage = $data->image; // keep old image
 
             $file = $request->file('image');
-            $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $tempName = Str::uuid() . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             if (!is_dir(dirname($tempPath))) {
                 mkdir(dirname($tempPath), 0775, true);
             }
 
-           $file->move(dirname($tempPath), basename($tempPath));
-
-
+            $file->move(dirname($tempPath), basename($tempPath));
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
