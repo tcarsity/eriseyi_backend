@@ -98,11 +98,9 @@ class EventController extends Controller
 
 
         if($request->hasFile('image')){
-            // delete old image from supabase
-            // (optional — depends if you want deletion)
-            // Supabase does not auto-delete old files
 
-            // temp file for intervention
+             $oldImage = $data->image; // keep old image
+
             $file = $request->file('image');
             $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
@@ -113,9 +111,15 @@ class EventController extends Controller
 
            $file->move(dirname($tempPath), basename($tempPath));
 
+
+
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
             $data['image'] = $publicUrl;
+
+            if ($oldImage) {
+                SupabaseStorage::delete($oldImage);
+            }
 
             unlink($tempPath);
         }

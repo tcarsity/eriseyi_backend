@@ -102,7 +102,6 @@ class TestimonialController extends Controller
      */
     public function update(Request $request, Testimonial $testimonial)
     {
-        //
         $validator = $request->validate([
             'author' => 'required|string|max:255',
             'designation' => 'nullable|string|max:255',
@@ -112,41 +111,44 @@ class TestimonialController extends Controller
 
         $testimonial->fill(Arr::except($validator, ['image']));
 
-        if($request->hasFile('image')){
-            // delete old image if exists
-            if($testimonial->image){
-              $relativePath = str_replace(env('SUPABASE_URL').'/storage/v1/object/public/'.env('SUPABASE_BUCKET').'/', '', $testimonial->image);
+        if ($request->hasFile('image')) {
 
-            // Call Supabase delete endpoint
-            Http::withHeaders([
-                'apikey' => env('SUPABASE_KEY'),
-                'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
-            ])->delete(env('SUPABASE_URL')."/storage/v1/object/".env('SUPABASE_BUCKET')."/".$relativePath);
-        }
+            $oldImage = $testimonial->image; // keep old image
 
             $file = $request->file('image');
-            $tempName = Str::uuid() . "." . $file->getClientOriginalExtension();
+            $tempName = Str::uuid() . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
-            if(!is_dir(dirname($tempPath))) {
+            if (!is_dir(dirname($tempPath))) {
                 mkdir(dirname($tempPath), 0755, true);
             }
 
             $file->move(dirname($tempPath), basename($tempPath));
 
-            $publicUrl = SupabaseStorage::upload($tempPath, "testimonials");
+            try {
+                // upload new image first
+                $publicUrl = SupabaseStorage::upload($tempPath, 'testimonials');
+                $testimonial->image = $publicUrl;
 
-            $testimonial->image = $publicUrl;
+                // only delete old image AFTER successful upload
+                if ($oldImage) {
+                    SupabaseStorage::delete($oldImage);
+                }
 
-            @unlink($tempPath);
+                @unlink($tempPath);
+            } catch (\Exception $e) {
+                @unlink($tempPath);
+                return response()->json(['error' => 'Upload failed'], 500);
+            }
         }
 
-            $testimonial->save();
+        $testimonial->save();
 
-            log_admin_activity('updated_testimonial', "Updated testimonial: {$testimonial->author}");
+        log_admin_activity('updated_testimonial', "Updated testimonial: {$testimonial->author}");
 
-            return new TestimonialResource($testimonial);
+        return new TestimonialResource($testimonial);
     }
+
 
     /**
      * Remove the specified resource from storage.
