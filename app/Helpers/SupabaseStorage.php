@@ -8,39 +8,39 @@ class SupabaseStorage
 {
     public static function upload(string $filePath, string $path)
     {
-
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
         if (!file_exists($filePath)) {
-            throw new \Exception("Temp file not found: {$filePath}");
+            throw new \Exception('Temp file does not exist');
         }
 
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
-        $fileName = time() . '_' . uniqid() . '.' . $extension;
-        $fullPath = "$path/$fileName";
+        $fileName = time().'_'.uniqid().'.'.$extension;
+        $fullPath = $path.'/'.$fileName;
 
-        // Correct MIME detection
         $mime = mime_content_type($filePath);
 
         $response = Http::withHeaders([
             'apikey' => $supabaseKey,
-            'Authorization' => "Bearer {$supabaseKey}",
+            'Authorization' => 'Bearer '.$supabaseKey,
             'Content-Type' => $mime,
             'x-upsert' => 'true',
-        ])->put(
-            "{$supabaseUrl}/storage/v1/object/{$bucket}/{$fullPath}",
-            file_get_contents($filePath)
+        ])->withBody(
+            file_get_contents($filePath),
+            $mime
+        )->put(
+            "{$supabaseUrl}/storage/v1/object/{$bucket}/{$fullPath}"
         );
 
         if (!$response->successful()) {
-            throw new \Exception("Supabase upload failed: " . $response->body());
+            throw new \Exception($response->body());
         }
 
-        // return public URL
         return "{$supabaseUrl}/storage/v1/object/public/{$bucket}/{$fullPath}";
     }
+
 
     public static function delete($path)
     {
