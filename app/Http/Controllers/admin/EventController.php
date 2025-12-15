@@ -51,15 +51,7 @@ class EventController extends Controller
                 mkdir(dirname($tempPath), 0775, true);
             }
 
-            // resize / compress using intervention
-            $img = Image::read($file->getRealPath())
-            ->resize(600, null, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            })
-
-            // save compressed version
-            ->save($tempPath, 85);
+            $file->move(dirname($tempPath), basename($tempPath));
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
@@ -119,14 +111,7 @@ class EventController extends Controller
                 mkdir(dirname($tempPath), 0775, true);
             }
 
-
-            //Resize /compress using intervention
-            $img = Image::read($file->getRealPath())
-            ->resize(600, null, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            })
-            ->save($tempPath, 85);
+           $file->move(dirname($tempPath), basename($tempPath));
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 

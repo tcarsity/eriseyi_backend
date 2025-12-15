@@ -65,9 +65,7 @@ class TestimonialController extends Controller
                 mkdir(dirname($tempPath), 0755, true);
             }
 
-            Image::read($file)
-                ->resize(300, 300)
-                ->save($tempPath);
+            $file->move(dirname($tempPath), basename($tempPath));
 
             try{
                 $publicUrl = SupabaseStorage::upload($tempPath, "testimonials");
@@ -137,11 +135,7 @@ class TestimonialController extends Controller
                 mkdir(dirname($tempPath), 0755, true);
             }
 
-            Image::read($file)
-                ->resize(300,300, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                })->save($tempPath);
+            $file->move(dirname($tempPath), basename($tempPath));
 
             $publicUrl = SupabaseStorage::upload($tempPath, "testimonials");
 
