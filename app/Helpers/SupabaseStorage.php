@@ -42,14 +42,17 @@ class SupabaseStorage
     }
 
 
-    public static function delete($path)
+   public static function delete($path)
     {
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
-        // Convert full public URL → relative path inside bucket
-        $relativePath = str_replace("$supabaseUrl/storage/v1/object/public/$bucket/", "", $path);
+        $relativePath = str_replace(
+            "$supabaseUrl/storage/v1/object/public/$bucket/",
+            "",
+            $path
+        );
 
         $response = Http::withHeaders([
             'apikey' => $supabaseKey,

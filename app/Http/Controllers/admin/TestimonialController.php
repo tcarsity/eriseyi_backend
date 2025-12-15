@@ -153,24 +153,19 @@ class TestimonialController extends Controller
      */
     public function destroy(Testimonial $testimonial)
     {
-        if($testimonial->image) {
-        // Convert full public URL → relative path inside bucket
-        $relativePath = str_replace(
-            env('SUPABASE_URL').'/storage/v1/object/public/'.env('SUPABASE_BUCKET').'/',
-            '',
-            $testimonial->image
+        if ($testimonial->image) {
+            SupabaseStorage::delete($testimonial->image);
+        }
+
+        log_admin_activity(
+            'deleted_testimonial',
+            "Deleted testimonial: {$testimonial->author}"
         );
 
-        // Delete from Supabase
-        Http::withHeaders([
-            'apikey' => env('SUPABASE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
-        ])->delete(env('SUPABASE_URL')."/storage/v1/object/".env('SUPABASE_BUCKET')."/".$relativePath);
-    }
-
-        log_admin_activity('deleted_testimonial', "Deleted testimonial: {$testimonial->author}");
-
         $testimonial->delete();
-        return response()->json(['message' => 'Testimonial deleted successfully']);
+
+        return response()->json([
+            'message' => 'Testimonial deleted successfully'
+        ]);
     }
 }

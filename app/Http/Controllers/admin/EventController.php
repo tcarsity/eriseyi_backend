@@ -135,19 +135,8 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         if($event->image) {
-        // Convert full public URL → relative path inside bucket
-        $relativePath = str_replace(
-            env('SUPABASE_URL').'/storage/v1/object/public/'.env('SUPABASE_BUCKET').'/',
-            '',
-            $event->image
-        );
-
-        // Delete from Supabase
-        Http::withHeaders([
-            'apikey' => env('SUPABASE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
-        ])->delete(env('SUPABASE_URL')."/storage/v1/object/".env('SUPABASE_BUCKET')."/".$relativePath);
-    }
+            SupabaseStorage::delete($event->image);
+        }
 
         log_admin_activity('deleted_event', "Deleted event: {$event->title}");
 
