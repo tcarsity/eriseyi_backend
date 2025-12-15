@@ -21,9 +21,7 @@ class EventResource extends JsonResource
             'location' => $this->location,
             'event_date' => $this->event_date,
             'event_time' => $this->event_time,
-            'image' => $this->image
-             ? url($this->image)
-             : null,
+            'image' => $this->image,
             'creator' => new UserResource($this->creator),
             'created_at' => $this->created_at->format('y-m-d H:i'),
             'updated_at' => $this->updated_at->format('y-m-d H:i'),

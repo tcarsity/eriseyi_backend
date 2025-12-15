@@ -19,9 +19,7 @@ class TestimonialResource extends JsonResource
             'author' => $this->author,
             'message' => $this->message,
             'designation' => $this->designation,
-            'image' => $this->image
-            ? asset('uploads/testimonials/' . $this->image)
-            : null,
+            'image' => $this->image,
             'created_at' => $this->created_at->toDateString(),
         ];
     }
