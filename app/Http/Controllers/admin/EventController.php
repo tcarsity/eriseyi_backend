@@ -36,14 +36,14 @@ class EventController extends Controller
         ]);
 
         // prepare base data (excluding image for now)
-        $event->fill(Arr::except($validated, ['image']));
-        $event['title'] = Str::title($validated['title']);
-        $event['created_by'] = Auth::id();
+        $data = Arr::except($validated, ['image']);
+        $data['title'] = Str::title($data['title']);
+        $data['created_by'] = Auth::id();
 
         if($request->hasFile('image')){
 
             $file = $request->file('image');
-            $tempName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             // ensure temp directory exists
@@ -55,13 +55,13 @@ class EventController extends Controller
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
-            $event->image = $publicUrl;
+            $data['image'] = $publicUrl;
 
             unlink($tempPath);
 
         }
         // create new event record
-        $event->save();
+        $event = Event::create($data);
 
         log_admin_activity('created_event', "Added event: {$event->title}");
 
@@ -93,36 +93,38 @@ class EventController extends Controller
 
 
         // prepare base data (excluding image for now)
-        $event->fill(Arr::except($validated, ['image']));
-        $event['title'] = Str::title($validated['title']);
+        $data = Arr::except($validated, ['image']);
+        $data['title'] = Str::title($validated['title']);
 
 
         if($request->hasFile('image')){
 
-            $oldImage = $event->image; // keep old image
+             $oldImage = $data->image; // keep old image
 
             $file = $request->file('image');
-            $tempName = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
             $tempPath = storage_path("app/temp/" . $tempName);
 
             if (!is_dir(dirname($tempPath))) {
                 mkdir(dirname($tempPath), 0775, true);
             }
 
-            $file->move(dirname($tempPath), basename($tempPath));
+           $file->move(dirname($tempPath), basename($tempPath));
+
+
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
-            $event->image = $publicUrl;
+            $data['image'] = $publicUrl;
 
             if ($oldImage) {
-                SupabaseStorage::delete($oldImage);
-            }
+                    SupabaseStorage::delete($oldImage);
+                }
 
             unlink($tempPath);
         }
 
-        $event->save();
+        $event->update($data);
 
         log_admin_activity('updated_event', "Updated event: {$event->title}");
 
