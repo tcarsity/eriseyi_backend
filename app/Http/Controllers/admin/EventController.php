@@ -113,7 +113,7 @@ class EventController extends Controller
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
-            $data['image'] = $publicUrl;
+            $event->image = $publicUrl;
 
             if ($oldImage) {
                 SupabaseStorage::delete($oldImage);
