@@ -93,13 +93,13 @@ class EventController extends Controller
 
 
         // prepare base data (excluding image for now)
-        $data->fill(Arr::except($validated, ['image']));
-        $data['title'] = Str::title($validated['title']);
+        $event->fill(Arr::except($validated, ['image']));
+        $event['title'] = Str::title($validated['title']);
 
 
         if($request->hasFile('image')){
 
-            $oldImage = $data->image; // keep old image
+            $oldImage = $event->image; // keep old image
 
             $file = $request->file('image');
             $tempName = Str::uuid() . '.' . $file->getClientOriginalExtension();
@@ -122,7 +122,7 @@ class EventController extends Controller
             unlink($tempPath);
         }
 
-        $event->update($data);
+        $event->save();
 
         log_admin_activity('updated_event', "Updated event: {$event->title}");
 
