@@ -94,12 +94,15 @@ class EventController extends Controller
 
         // prepare base data (excluding image for now)
         $data = Arr::except($validated, ['image']);
-        $data['title'] = Str::title($validated['title']);
+
+        if(isset($validated['title'])) {
+            $data['title'] = Str::title($validated['title']);
+        }
 
 
         if($request->hasFile('image')){
 
-             $oldImage = $data->image; // keep old image
+             $oldImage = $event->image; // keep old image
 
             $file = $request->file('image');
             $tempName = 'event_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
@@ -111,7 +114,7 @@ class EventController extends Controller
 
            $file->move(dirname($tempPath), basename($tempPath));
 
-
+           try{
 
             $publicUrl = SupabaseStorage::upload($tempPath, "events");
 
@@ -120,8 +123,9 @@ class EventController extends Controller
             if ($oldImage) {
                     SupabaseStorage::delete($oldImage);
                 }
-
+           } finally {
             unlink($tempPath);
+           }
         }
 
         $event->update($data);
@@ -133,7 +137,7 @@ class EventController extends Controller
             'message' => 'Event updated successfully!',
         ])
         ->response()
-        ->setStatusCode(201);
+        ->setStatusCode(200);
     }
 
     public function destroy(Event $event)
