@@ -23,8 +23,8 @@ class EventResource extends JsonResource
             'event_time' => $this->event_time,
             'image' => $this->image,
             'creator' => new UserResource($this->creator),
-            'created_at' => $this->created_at->format('y-m-d H:i'),
-            'updated_at' => $this->updated_at->format('y-m-d H:i'),
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
     }
 }
