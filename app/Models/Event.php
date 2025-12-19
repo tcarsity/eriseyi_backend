@@ -17,6 +17,9 @@ class Event extends Model
         'event_time',
         'image',
         'created_by',
+        'created_at',
+        'updated_at',
+
     ];
 
 

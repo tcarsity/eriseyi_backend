@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AdminActivity extends Model
 {
     //
-    protected $fillable = ['user_id', 'action', 'details'];
+    protected $fillable = ['user_id', 'action', 'details', 'created_at'];
 
     public function user()
     {
