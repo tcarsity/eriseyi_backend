@@ -119,15 +119,11 @@ class AdminController extends Controller
 
     public function activeAdmins()
     {
-        $oneMinutesAgo = now()->subMinutes(1);
 
         $admins = User::where('role', 'admin')
             ->select('id', 'name', 'email', 'status', 'last_seen')
-            ->get()
-            ->map(function ($admin) use ($oneMinutesAgo) {
-                $admin->is_active = $admin->last_seen && $admin->last_seen >= $oneMinutesAgo;
-                return $admin;
-            });
+            ->get();
+
 
         return response()->json([
             'data' => UserResource::collection($admins),
