@@ -38,8 +38,8 @@ class AdminActivityController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $eventsCount = Event::where('created_at', $user->id)->count();
-        $membersCount = Member::where('created_at', $user->id)->count();
+        $eventsCount = Event::where('created_by', $user->id)->count();
+        $membersCount = Member::where('created_by', $user->id)->count();
 
         // Use Resource for consistent formatting
         $recentActivities = AdminActivity::where('user_id', $user->id)
@@ -48,6 +48,8 @@ class AdminActivityController extends Controller
             ->get();
 
             return response()->json([
+                'events_count' => $eventsCount,
+                'members_count' => $membersCount,
                 'data' => AdminActivityResource::collection($recentActivities),
             ]);
     }
