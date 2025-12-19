@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Carbon\Carbon;
 
 
 class SecurityLogResource extends JsonResource
@@ -22,7 +23,10 @@ class SecurityLogResource extends JsonResource
             'email' => $this->email,
             'ip_address' => $this->ip_address,
             'user_agent' => $this->user_agent,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+             'creator' => new UserResource($this->creator),
+           'created_at' => $this->created_at
+            ? Carbon::parse($this->created_at)->toIso8601String()
+            : null,
 
         ];
     }

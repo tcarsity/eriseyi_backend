@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Carbon\Carbon;
 
 
 class AdminActivityResource extends JsonResource
@@ -21,7 +22,9 @@ class AdminActivityResource extends JsonResource
             'details' => $this->details,
             'user_name' => $this->user?->name,
             'user_role' => $this->user?->role,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at
+            ? Carbon::parse($this->created_at)->toIso8601String()
+            : null,
 
         ];
     }
