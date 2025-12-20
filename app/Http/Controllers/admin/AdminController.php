@@ -120,10 +120,7 @@ class AdminController extends Controller
     public function activeAdmins()
     {
 
-        $admins = User::where('role', 'admin')
-            ->select('id', 'name', 'email', 'status', 'last_seen')
-            ->get();
-
+        $admins = User::where('role', 'admin')->get();
 
         return response()->json([
             'data' => UserResource::collection($admins),

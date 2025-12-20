@@ -30,7 +30,15 @@ Route::get('/events/{event}', [EventController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'last_seen'])->group(function () {
 
-    Route::get('/heartbeat', function () {
+    Route::post('/heartbeat', function () {
+        $user = auth()->user();
+
+        if ($user) {
+            $user->update([
+                'last_seen' => now(),
+            ]);
+        }
+
         return response()->json(['success' => true]);
     });
 

@@ -23,7 +23,7 @@ class UserResource extends JsonResource
             'status' => $this->status,
             'last_seen' => $this->last_seen,
             'is_active' => $this->last_seen
-                ? Carbon::parse($this->last_seen)->gt(now()->subSeconds(65))
+                ? Carbon::parse($this->last_seen)->gt(now()->subSeconds(30))
                 : false,
         ];
     }
