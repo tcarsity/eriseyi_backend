@@ -136,44 +136,54 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'email' => ['required', 'email', 'exists:users,email'],
         ]);
 
-        // Check role is either admin or superadmin
         $user = User::where('email', $request->email)->first();
-        if(!in_array($user->role, ['admin', 'superadmin'])){
-            return response()->json(['message' => 'Unauthorized role.'], 403);
+
+        // Only admin & superadmin can request reset
+        if (!in_array($user->role, ['admin', 'superadmin'])) {
+            return response()->json([
+                'message' => 'Unauthorized role.',
+            ], 403);
         }
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $status = Password::sendResetLink([
+            'email' => $request->email,
+        ]);
 
         log_security_event('Password reset link requested', [
             'email' => $request->email,
             'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent()
+            'user_agent' => $request->userAgent(),
         ]);
 
-        return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => __($status)], 200)
-            : response()->json(['message' => __($status)], 400);
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'message' => 'Password reset link sent successfully.',
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'Unable to send reset link. Please try again.',
+        ], 400);
     }
 
 
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'token' => 'required',
-            'email' => 'required|email|exists:users,email',
-            'password' => 'required|min:8|confirmed'
+            'token' => ['required'],
+            'email' => ['required', 'email', 'exists:users,email'],
+            'password' => ['required', 'min:8', 'confirmed'],
         ]);
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
-                //Ensure only admin or superadmin can reset
-                if(!in_array($user->role, ['admin', 'superadmin'])) {
+
+                // Restrict role again (important)
+                if (!in_array($user->role, ['admin', 'superadmin'])) {
                     abort(403, 'Unauthorized role.');
                 }
 
@@ -185,16 +195,21 @@ class AuthController extends Controller
                 log_security_event('Password reset successfully', [
                     'user_id' => $user->id,
                     'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent()
+                    'user_agent' => request()->userAgent(),
                 ]);
 
                 event(new PasswordReset($user));
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => __($status)], 200)
-            : response()->json(['message' => __($status)], 400);
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => 'Password reset successful.',
+            ], 200);
+        }
 
+        return response()->json([
+            'message' => 'Invalid token or email.',
+        ], 400);
     }
 }
