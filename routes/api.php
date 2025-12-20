@@ -30,15 +30,13 @@ Route::get('/events/{event}', [EventController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'last_seen'])->group(function () {
 
-    Route::post('/logout', [AuthController::class, 'logout']);
-
     Route::get('/heartbeat', function () {
-
-        $user = auth()->user();
-        $user->forceFill(['last_seen' => now()])->save();
-
         return response()->json(['success' => true]);
     });
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+
 
 
     Route::middleware('role:superadmin')->group(function () {
