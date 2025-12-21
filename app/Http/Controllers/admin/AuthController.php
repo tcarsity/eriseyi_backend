@@ -148,21 +148,52 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $status = Password::sendResetLink([
-            'email' => $request->email,
-        ]);
+        try{
+            Log::info('Attempting password reset email', [
+                'email' => $request->email,
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'mail_port' => config('mail.mailers.smtp.port'),
+            ]);
 
-        log_security_event('Password reset link requested', [
-            'email' => $request->email,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+
+            $status = Password::sendResetLink([
+                'email' => $request->email,
+            ]);
+
+            Log::info('Password reset mail status', [
+                'email' => $request->email,
+                'status' => $status,
+            ]);
+
+
+            log_security_event('Password reset link requested', [
+                'email' => $request->email,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+        }catch (\Throwable $e) {
+                Log::error('Password reset email failed', [
+                'email' => $request->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Mail service error. Please contact support.',
+            ], 500);
+        }
+
 
         if ($status === Password::RESET_LINK_SENT) {
             return response()->json([
                 'message' => 'Password reset link sent successfully.',
             ], 200);
         }
+
+        Log::warning('Password reset link not sent', [
+            'email' => $request->email,
+            'status' => $status,
+        ]);
 
         return response()->json([
             'message' => 'Unable to send reset link. Please try again.',
