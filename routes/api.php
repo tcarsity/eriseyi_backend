@@ -22,7 +22,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 //event public routes
-Route::get('/events', [EventController::class, 'index']);
+Route::get('/public-events', [EventController::class, 'index']);
 Route::get('/events/{event}', [EventController::class, 'show']);
 
 
