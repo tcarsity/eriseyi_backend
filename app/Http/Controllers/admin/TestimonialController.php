@@ -170,4 +170,13 @@ class TestimonialController extends Controller
             'message' => 'Testimonial deleted successfully'
         ]);
     }
+
+    public function publicTestimonials()
+    {
+        $testimonials = Testimonial::latest()
+            ->take(4)
+            ->get();
+
+        return TestimonialResource::collection($testimonials);
+    }
 }

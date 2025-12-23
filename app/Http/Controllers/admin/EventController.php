@@ -23,6 +23,16 @@ class EventController extends Controller
         return EventResource::collection($events);
     }
 
+    public function publicEvents()
+    {
+        $events = Event::whereDate('event_date', '>=', now())
+            ->orderBy('event_date', 'asc')
+            ->limit(6)
+            ->get();
+
+        return EventResource::collection($events);
+    }
+
 
     public function store(Request $request)
     {

@@ -16,14 +16,17 @@ use Illuminate\Support\Facades\Auth;
 
 Route::post('/members/public', [MemberController::class, 'publicStore']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/public-testimonials', [TestimonialController::class, 'index']);
+
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
+// Testimonial public route
+Route::get('/public-testimonials', [TestimonialController::class, 'publicTestimonials']);
+
 //event public routes
-Route::get('/public-events', [EventController::class, 'index']);
-Route::get('/events/{event}', [EventController::class, 'show']);
+Route::get('/public-events', [EventController::class, 'publicEvents']);
+
 
 
 
@@ -59,18 +62,33 @@ Route::middleware(['auth:sanctum', 'last_seen'])->group(function () {
 
     Route::middleware('role:superadmin,admin')->group(function () {
         Route::get('/dashboard-stats', [SuperAdminDashboardController::class, 'getStats']);
+
+        // Members Controller route
         Route::get('/members/search', [MemberController::class, 'searchMember']);
         Route::get('/members', [MemberController::class, 'index']);
+        Route::post('/members', [MemberController::class, 'store']);
         Route::get('/members/{member}', [MemberController::class, 'show']);
         Route::put('/members/{member}', [MemberController::class, 'update']);
         Route::delete('/members/{member}', [MemberController::class, 'destroy']);
         Route::post('/members/admin', [MemberController::class, 'adminStore']);
-        Route::apiResource('testimonials', TestimonialController::class);
+        Route::get('/recent-public-members', [MemberController::class, 'recentPublicMembers']);
+
+        // Testimonial Controller route
+        Route::get('/testimonials', [TestimonialController::class, 'index']);
+        Route::post('/testimonials', [TestimonialController::class, 'store']);
+        Route::get('/testimonials/{testimonial}', [TestimonialController::class, 'show']);
+        Route::put('/testimonials/{testimonial}', [TestimonialController::class, 'update']);
+        Route::delete('/testimonials/{testimonial}', [TestimonialController::class, 'destroy']);
+
+        // Event Controller route
+        Route::get('/events', [EventController::class, 'index']);
         Route::post('/events', [EventController::class, 'store']);
+        Route::get('/events/{event}', [EventController::class, 'show']);
         Route::put('/events/{event}', [EventController::class, 'update']);
         Route::delete('/events/{event}', [EventController::class, 'destroy']);
+
+
         Route::post('/change-password', [AdminController::class, 'changePassword']);
-        Route::get('/recent-public-members', [MemberController::class, 'recentPublicMembers']);
         Route::get('/admin/activities', [AdminActivityController::class, 'index']);
         Route::get('/admin/activities/performance', [AdminActivityController::class, 'performance']);
         Route::put('/profile', [AdminController::class, 'updateProfile']);

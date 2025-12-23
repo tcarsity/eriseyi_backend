@@ -23,6 +23,28 @@ class MemberController extends Controller
 
     }
 
+    public function store(Request $request)
+    {
+            $validator = $request->validate([
+                'name' => 'required|string|max:255',
+                'phone' => ['required','regex:/^(70|71|80|81|90|91)\d{8}$/', new NigerianPhoneUnique()],
+                'address' => 'required|string|max:500',
+                'gender' => 'required|in:male,female',
+                'birth_month' => 'required|string',
+                'birth_date' => 'required|integer'
+            ]);
+
+
+            $member = Member::create([
+                ...$validator,
+                'created_by' => null,
+            ]);
+
+            return (new MemberResource($member))
+            ->additional(['message' => 'Member added successfully']);
+
+    }
+
 
     public function publicStore(Request $request)
     {
