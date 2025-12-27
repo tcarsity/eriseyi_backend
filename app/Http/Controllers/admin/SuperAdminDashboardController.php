@@ -55,7 +55,7 @@ class SuperAdminDashboardController extends Controller
             // 🔥 REAL ONLINE CHECK
             $activeAdmins = $admins->filter(function ($admin) {
                 return $admin->last_seen &&
-                    $admin->last_seen->gte(now()->subSeconds(60));
+                    $admin->last_seen->gte(now()->subSeconds(30));
             });
 
             $inactiveAdmins = $admins->count() - $activeAdmins->count();

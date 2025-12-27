@@ -124,7 +124,7 @@ class AdminController extends Controller
         $admins = $admins->map(function ($admin) {
             $admin->is_active =
                 $admin->last_seen &&
-                $admin->last_seen->gte(now()->subSeconds(60));
+                $admin->last_seen->gte(now()->subSeconds(30));
 
             return $admin;
         });
