@@ -15,8 +15,8 @@ class SuperAdminDashboardController extends Controller
     //
     public function getStats(Request $request)
     {
-        // Fetch all relevant data
         $user = $request->user();
+
         $data = [
             'members' => ['count' => Member::count()],
             'testimonials' => ['count' => Testimonial::latest()->take(4)->count()],
@@ -29,15 +29,17 @@ class SuperAdminDashboardController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
-        //Calculate weekly comparison
-        $thisWeekCount = Member::where('created_at','>=',[now()->startOfWeek(), now()->endOfWeek()])->count();
+        $thisWeekCount = Member::whereBetween('created_at', [
+            now()->startOfWeek(),
+            now()->endOfWeek(),
+        ])->count();
+
         $lastWeekCount = Member::whereBetween('created_at', [
-            now()->subweek()->startOfWeek(),
-            now()->subweek()->endOfWeek(),
+            now()->subWeek()->startOfWeek(),
+            now()->subWeek()->endOfWeek(),
         ])->count();
 
         $growth = $thisWeekCount - $lastWeekCount;
-
 
         $data['newMembers'] = [
             'count' => $trend->sum('count'),
@@ -47,26 +49,33 @@ class SuperAdminDashboardController extends Controller
             'growth' => $growth,
         ];
 
-        // For superadmin to show everything
-        if($user->role === 'superadmin'){
+        if ($user->role === 'superadmin') {
             $admins = User::where('role', 'admin')->get();
 
-           $data['admins'] = [
+            // 🔥 REAL ONLINE CHECK
+            $activeAdmins = $admins->filter(function ($admin) {
+                return $admin->last_seen &&
+                    $admin->last_seen->gte(now()->subSeconds(60));
+            });
+
+            $inactiveAdmins = $admins->count() - $activeAdmins->count();
+
+            $data['admins'] = [
                 'data' => UserResource::collection($admins),
                 'count' => $admins->count(),
-                'active' => $admins->where('status', 'active')->count(),
-                'inactive' => $admins->where('status', 'inactive')->count(),
-           ];
+                'active' => $activeAdmins->count(),
+                'inactive' => $inactiveAdmins,
+            ];
 
-           $adminActivity = User::where('role', 'admin')
+            $data['admin_activity'] = User::where('role', 'admin')
                 ->withCount([
                     'members as members_created',
                     'events as events_created'
                 ])
                 ->get(['id', 'name']);
+        }
 
-            $data['admin_activity'] = $adminActivity;
-      }
-      return response()->json($data);
+        return response()->json($data);
     }
+
 }
