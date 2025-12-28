@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\UserResource;
-
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -122,9 +122,9 @@ class AdminController extends Controller
         $admins = User::where('role', 'admin')->get();
 
         $admins = $admins->map(function ($admin) {
-            $admin->is_active =
-                $admin->last_seen &&
-                $admin->last_seen->gte(now()->subSeconds(30));
+            $admin->is_active = $admin->last_seen
+                ? Carbon::parse($admin->last_seen)->gte(now()->subSeconds(30))
+                : false;
 
             return $admin;
         });

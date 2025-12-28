@@ -9,10 +9,13 @@ use App\Models\Testimonial;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class SuperAdminDashboardController extends Controller
 {
     //
+
+
     public function getStats(Request $request)
     {
         $user = $request->user();
@@ -52,19 +55,21 @@ class SuperAdminDashboardController extends Controller
         if ($user->role === 'superadmin') {
             $admins = User::where('role', 'admin')->get();
 
-            // 🔥 REAL ONLINE CHECK
-            $activeAdmins = $admins->filter(function ($admin) {
-                return $admin->last_seen &&
-                    $admin->last_seen->gte(now()->subSeconds(30));
-            });
 
-            $inactiveAdmins = $admins->count() - $activeAdmins->count();
+            $activeAdmins = $admins->filter(function ($admin) {
+                if (!$admin->last_seen) {
+                    return false;
+                }
+
+                return Carbon::parse($admin->last_seen)
+                    ->gte(now()->subSeconds(30));
+            });
 
             $data['admins'] = [
                 'data' => UserResource::collection($admins),
                 'count' => $admins->count(),
                 'active' => $activeAdmins->count(),
-                'inactive' => $inactiveAdmins,
+                'inactive' => $admins->count() - $activeAdmins->count(),
             ];
 
             $data['admin_activity'] = User::where('role', 'admin')

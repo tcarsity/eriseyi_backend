@@ -31,6 +31,10 @@ class User extends Authenticatable
         'last_seen'
     ];
 
+    protected $casts = [
+        'last_seen' => 'datetime',
+    ];
+
 
     public function members()
     {
