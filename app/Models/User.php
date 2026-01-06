@@ -46,7 +46,7 @@ class User extends Authenticatable
 
     public function getIsActiveAttribute()
     {
-        return $this->last_seen && $this->last_seen->gt(now()->subMinutes(5));
+        return $this->last_seen && $this->last_seen->gt(now()->subSeconds(30));
     }
 
     /**
