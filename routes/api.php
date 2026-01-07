@@ -71,7 +71,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/members/{member}', [MemberController::class, 'update']);
         Route::delete('/members/{member}', [MemberController::class, 'destroy']);
         Route::post('/members/admin', [MemberController::class, 'adminStore']);
-        Route::get('/recent-public-members', [MemberController::class, 'recentPublicMembers']);
+        Route::get('/admin/recent-members', [MemberController::class, 'recentPublicMembers']);
 
         // Testimonial Controller route
         Route::get('/testimonials', [TestimonialController::class, 'index']);
