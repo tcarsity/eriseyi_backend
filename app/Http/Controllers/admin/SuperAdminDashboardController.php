@@ -53,16 +53,16 @@ class SuperAdminDashboardController extends Controller
         ];
 
         if ($user->role === 'superadmin') {
-            $admins = User::where('role', 'admin')->get();
+
+            //Only admins that are logged in
+            $admins = User::where('role', 'admin')
+            ->whereNotNull('last_seen')
+            ->get();
 
 
             $activeAdmins = $admins->filter(function ($admin) {
-                if (!$admin->last_seen) {
-                    return false;
-                }
-
                 return Carbon::parse($admin->last_seen)
-                    ->gte(now()->subSeconds(30));
+                    ->gte(now()->subSeconds(60));
             });
 
             $data['admins'] = [
