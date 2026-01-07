@@ -123,7 +123,7 @@ class AdminController extends Controller
 
         $admins = $admins->map(function ($admin) {
             $admin->is_active = $admin->last_seen
-                ? Carbon::parse($admin->last_seen)->gte(now()->subSeconds(30))
+                ? Carbon::parse($admin->last_seen)->gte(now()->subSeconds(60))
                 : false;
 
             return $admin;

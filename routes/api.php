@@ -31,7 +31,7 @@ Route::get('/public-events', [EventController::class, 'publicEvents']);
 
 
 
-Route::middleware(['auth:sanctum', 'last_seen'])->group(function () {
+Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('/heartbeat', function () {
         $user = auth()->user();
