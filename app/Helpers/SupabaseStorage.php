@@ -9,7 +9,7 @@ class SupabaseStorage
     public static function upload(string $filePath, string $path)
     {
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
-        $supabaseKey = env('SUPABASE_KEY');
+        $supabaseKey = env('SUPABASE_SERVICE_ROLE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
         if (!file_exists($filePath)) {
@@ -45,7 +45,7 @@ class SupabaseStorage
    public static function delete($path)
     {
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
-        $supabaseKey = env('SUPABASE_KEY');
+        $supabaseKey = env('SUPABASE_SERVICE_ROLE_KEY');
         $bucket = env('SUPABASE_BUCKET');
 
         $relativePath = str_replace(
