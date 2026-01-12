@@ -136,35 +136,27 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        try {
+            $user = User::where('email', $request->email)->first();
 
-        // Only admin & superadmin can request reset
-        if (!in_array($user->role, ['admin', 'superadmin'])) {
-            return response()->json([
-                'message' => 'Unauthorized role.',
-            ], 403);
-        }
+            // Only restrict if user exists
+            if ($user && !in_array($user->role, ['admin', 'superadmin'])) {
+                return response()->json([
+                    'message' => 'If the email exists, a reset link has been sent.',
+                ], 200);
+            }
 
-        try{
-            Log::info('Attempting password reset email', [
-                'email' => $request->email,
-                'mail_host' => config('mail.mailers.smtp.host'),
-                'mail_port' => config('mail.mailers.smtp.port'),
-            ]);
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
 
-
-            $status = Password::sendResetLink([
-                'email' => $request->email,
-            ]);
-
-            Log::info('Password reset mail status', [
+            Log::info('Password reset attempt', [
                 'email' => $request->email,
                 'status' => $status,
             ]);
-
 
             log_security_event('Password reset link requested', [
                 'email' => $request->email,
@@ -172,40 +164,25 @@ class AuthController extends Controller
                 'user_agent' => $request->userAgent(),
             ]);
 
-        }catch (\Throwable $e) {
-                Log::error('Password reset email failed', [
+        } catch (\Throwable $e) {
+            Log::error('Password reset email failed', [
                 'email' => $request->email,
                 'error' => $e->getMessage(),
             ]);
-
-            return response()->json([
-                'message' => 'Mail service error. Please contact support.',
-            ], 500);
         }
-
-
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json([
-                'message' => 'Password reset link sent successfully.',
-            ], 200);
-        }
-
-        Log::warning('Password reset link not sent', [
-            'email' => $request->email,
-            'status' => $status,
-        ]);
 
         return response()->json([
-            'message' => 'Unable to send reset link. Please try again.',
-        ], 400);
+            'message' => 'If the email exists, a reset link has been sent.',
+        ], 200);
     }
+
 
 
     public function resetPassword(Request $request)
     {
         $request->validate([
             'token' => ['required'],
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'min:8', 'confirmed'],
         ]);
 
@@ -225,8 +202,8 @@ class AuthController extends Controller
 
                 log_security_event('Password reset successfully', [
                     'user_id' => $user->id,
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
+                    'ip_address' => $request()->ip(),
+                    'user_agent' => $request()->userAgent(),
                 ]);
 
                 event(new PasswordReset($user));
