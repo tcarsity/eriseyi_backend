@@ -19,7 +19,7 @@ if(!function_exists('log_security_event')) {
                 'user_id' => $details['user_id'] ?? ($user ? $user->id : null),
                 'email' => $details['email'] ?? $user?->email,
                 'action' => $action,
-                'ip_address' => $details['ip_address'] ?? request()->ip(),
+                'ip_address' => $details['ip_address'] ?? trim($ip),
                 'user_agent' => $details['user_agent'] ?? request()->header('User-Agent'),
             ]);
 
