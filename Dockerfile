@@ -11,10 +11,21 @@ RUN apt-get update && apt-get install -y \
     curl \
     unzip \
     git \
-    libpq-dev
+    libpq-dev \
+    nginx \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -22,14 +33,20 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
+# Copy application files
 COPY . .
 
-# Install app dependencies
+# Install PHP dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
-# Add Laravel permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Laravel permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Copy Nginx config
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy Supervisord config
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy entrypoint
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -38,8 +55,8 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # Expose Render port
 EXPOSE 10000
 
-# Use ENTRYPOINT instead of CMD for migrations
+# Start everything via entrypoint
 ENTRYPOINT ["entrypoint.sh"]
 
-# Start PHP server (Render will expose port 10000)
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT}"]
+# Start Supervisor (runs nginx + php-fpm)
+CMD ["/usr/bin/supervisord", "-n"]
