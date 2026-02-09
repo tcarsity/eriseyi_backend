@@ -30,7 +30,9 @@ done
 
 # Run migrations (force so non-interactive)
 echo "Running migrations..."
-php artisan migrate --force
+php artisan key:generate --force || true
+php artisan migrate --force || true
+php artisan optimize:clear || true
 
 # Run only the superadmin seeder (idempotent check recommended)
 echo "Running super admin seeder..."
