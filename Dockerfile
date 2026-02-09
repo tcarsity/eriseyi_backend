@@ -42,4 +42,4 @@ EXPOSE 10000
 ENTRYPOINT ["entrypoint.sh"]
 
 # Start PHP server (Render will expose port 10000)
-CMD ["php-fpm"]
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT}"]
