@@ -9,20 +9,24 @@ if(!function_exists('log_security_event')) {
 
             $user = Auth::user();
 
-           $ip =
+            $rawIp =
                 request()->header('CF-Connecting-IP') // Cloudflare (if ever added)
                 ?? request()->header('X-Forwarded-For')
                     ? trim(explode(',', request()->header('X-Forwarded-For'))[0])
                     : request()->header('X-Real-IP')
                 ?? request()->ip();
 
-        SecurityLog::create([
-            'user_id'    => $details['user_id'] ?? $user?->id,
-            'email'      => $details['email'] ?? $user?->email,
-            'action'     => $action,
-            'ip_address' => $details['ip_address'] ?? $ip,
-            'user_agent' => $details['user_agent'] ?? request()->userAgent(),
-        ]);
+                // Detect proxy / loopback
+            $isProxy = in_array($rawIp, ['127.0.0.1', '::1']);
+
+            SecurityLog::create([
+                'user_id'    => $details['user_id'] ?? $user?->id,
+                'email'      => $details['email'] ?? $user?->email,
+                'action'     => $action,
+                'ip_address' => $rawIp,
+                'is_proxy'   => $isProxy,
+                'user_agent' => $details['user_agent'] ?? request()->userAgent(),
+            ]);
 
     }
 
