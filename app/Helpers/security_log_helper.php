@@ -9,10 +9,12 @@ if(!function_exists('log_security_event')) {
 
             $user = Auth::user();
 
-            $ip =
-            request()->header('X-Forwarded-For')
-                ? trim(explode(',', request()->header('X-Forwarded-For'))[0])
-                : request()->header('X-Real-IP') ?? request()->ip();
+           $ip =
+                request()->header('CF-Connecting-IP') // Cloudflare (if ever added)
+                ?? request()->header('X-Forwarded-For')
+                    ? trim(explode(',', request()->header('X-Forwarded-For'))[0])
+                    : request()->header('X-Real-IP')
+                ?? request()->ip();
 
         SecurityLog::create([
             'user_id'    => $details['user_id'] ?? $user?->id,
