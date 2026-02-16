@@ -20,6 +20,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/update-admin-password', [AuthController::class, 'updateAdminPassword']);
 
 // Testimonial public route
 Route::get('/public-testimonials', [TestimonialController::class, 'publicTestimonials']);

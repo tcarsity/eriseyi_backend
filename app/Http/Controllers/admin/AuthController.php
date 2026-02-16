@@ -220,4 +220,32 @@ class AuthController extends Controller
             'message' => 'Invalid token or email.',
         ], 400);
     }
+
+    public function updateAdminPassword(Request $request)
+    {
+
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:8'
+        ]);
+
+        $admin = User::where('email', $request->email)->first();
+
+        if (!$admin) {
+            return response()->json([
+                'message' => 'Admin not found'
+            ], 404);
+
+        }
+
+        $admin->password = Hash::make($request->password);
+        $admin->save();
+
+        return response()->json([
+
+            'message' => 'Password updated successfully'
+
+        ]);
+
+    }
 }
