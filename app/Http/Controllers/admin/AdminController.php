@@ -29,11 +29,8 @@ class AdminController extends Controller
 
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8|string'
 
         ]);
-
-        $validated['password'] = Hash::make($validated['password']);
 
         $admin = User::create($validated);
 
