@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\UserResource;
+use App\Helpers\SupabaseHelper;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -23,18 +25,39 @@ class AdminController extends Controller
     public function store(Request $request)
     {
 
-        $validator = $request->validate([
+        $validated = $request->validate([
+
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|string'
+
         ]);
 
-        $validator['password'] = Hash::make($validator['password']);
+        $validated['password'] = Hash::make($validated['password']);
 
-        $admin = User::create($validator);
+        $admin = User::create($validated);
 
-        return (new UserResource($admin))->additional(['message' => 'Admin added successfully']);
+        // 🔥 Invite to Supabase
+
+        $response = SupabaseHelper::invite($admin->email);
+
+        if (!$response->successful()) {
+
+            \Log::error('Supabase invite failed', [
+
+                'email' => $admin->email,
+
+                'response' => $response->body(),
+
+            ]);
+
+        }
+        return (new UserResource($admin))
+
+            ->additional(['message' => 'Admin added successfully and invite sent']);
+
     }
+
 
     public function show(User $user)
     {
@@ -45,21 +68,28 @@ class AdminController extends Controller
     public function update(Request $request, User $user)
     {
 
-        $validator = $request->validate([
+        $validated = $request->validate([
+
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8',
+
         ]);
 
-        if(isset($validator['password'])){
-            $validator['password'] = Hash::make($validator['password']);
+        $emailChanged = isset($validated['email'])
+
+            && $validated['email'] !== $user->email;
+
+        $user->update($validated);
+
+        // 🔥 Sync Supabase if email changed
+
+        if ($emailChanged) {
+            SupabaseHelper::updateEmail($user->email, $validated['email']);
         }
+        return (new UserResource($user))
 
-        $validator['role'] = 'admin';
+            ->additional(['message' => 'Admin updated successfully']);
 
-        $user->update($validator);
-
-        return (new UserResource($user))->additional(['message' => 'Admin updated successfully']);
     }
 
     public function destroy(User $user)
