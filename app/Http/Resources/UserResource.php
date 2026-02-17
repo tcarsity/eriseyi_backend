@@ -21,6 +21,8 @@ class UserResource extends JsonResource
             'email' => $this->when(auth()->check() && auth()->user()->role === 'superadmin', $this->email),
             'role' => $this->role,
             'status' => $this->status,
+            'invite_status' => $this->invite_status,
+            'invite_sent_at' => $this->invite_sent_at,
             'last_seen' => $this->last_seen,
             'is_active' => $this->last_seen
                 ? Carbon::parse($this->last_seen)->gt(now()->subSeconds(60))

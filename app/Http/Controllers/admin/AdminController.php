@@ -32,7 +32,14 @@ class AdminController extends Controller
 
         ]);
 
-        $admin = User::create($validated);
+        $admin = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => null,
+            'invite_status' => 'pending',
+            'invite_sent_at' => now(),
+            'role' => 'admin'
+        ]);
 
         // 🔥 Invite to Supabase
 
