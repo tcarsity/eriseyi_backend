@@ -22,7 +22,6 @@ class SupabaseHelper
             'email' => $email,
 
             'redirect_to' => env('FRONTEND_URL') . '/reset-password'
-
         ]);
 
     }
