@@ -17,12 +17,14 @@ class SupabaseHelper
 
             'Content-Type' => 'application/json',
 
-        ])->post(env('SUPABASE_URL') . '/auth/v1/invite', [
+        ])->post(
+            env('SUPABASE_URL') . '/auth/v1/invite?redirect_to=' . urlencode(env('FRONTEND_URL') . '/reset-password'),
+            [
 
             'email' => $email,
 
-            'redirect_to' => env('FRONTEND_URL') . '/reset-password'
-        ]);
+            ]
+        );
 
     }
 
