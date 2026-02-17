@@ -187,4 +187,33 @@ class AdminController extends Controller
             'data' => new UserResource($user),
         ], 200);
     }
+
+    public function resendInvite(User $user)
+    {
+
+        if ($user->invite_status === 'active') {
+
+            return response()->json([
+
+                'message' => 'User is already active.'
+
+            ], 400);
+
+        }
+
+        SupabaseHelper::invite($user->email);
+
+        $user->update([
+
+            'invite_sent_at' => now(),
+
+        ]);
+
+        return response()->json([
+
+            'message' => 'Invite resent successfully.'
+
+        ]);
+
+    }
 }

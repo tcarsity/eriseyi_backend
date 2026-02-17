@@ -58,7 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/security-logs', [SecurityLogController::class, 'index']);
         Route::post('/security-logs/bulk-delete', [SecurityLogController::class, 'bulkDelete']);
         Route::post('/admin-activities/bulk-delete', [AdminActivityController::class, 'activityDelete']);
-
+        Route::post('/users/{user}/resend-invite', [AdminController::class, 'resendInvite']);
     });
 
     Route::middleware('role:superadmin,admin')->group(function () {
