@@ -187,27 +187,45 @@ class AuthController extends Controller
         ]);
 
         $status = Password::reset(
+
             $request->only('email', 'password', 'password_confirmation', 'token'),
+
             function ($user) use ($request) {
 
                 // Restrict role again (important)
+
                 if (!in_array($user->role, ['admin', 'superadmin'])) {
+
                     abort(403, 'Unauthorized role.');
+
                 }
 
                 $user->forceFill([
+
                     'password' => Hash::make($request->password),
+
                     'remember_token' => Str::random(60),
+
+                    'invite_status' => 'active', // ✅ Activate invite
+
                 ])->save();
 
+
+
                 log_security_event('Password reset successfully', [
+
                     'user_id' => $user->id,
-                    'ip_address' => $request()->ip(),
-                    'user_agent' => $request()->userAgent(),
+
+                    'ip_address' => $request->ip(),
+
+                    'user_agent' => $request->userAgent(),
+
                 ]);
 
                 event(new PasswordReset($user));
+
             }
+
         );
 
         if ($status === Password::PASSWORD_RESET) {
