@@ -28,6 +28,8 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
+        'invite_status',
+        'invite_sent_at',
         'last_seen'
     ];
 
