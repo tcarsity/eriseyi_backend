@@ -201,6 +201,18 @@ class AdminController extends Controller
 
         }
 
+        // 🔥 Prevent spamming resend within 2 minutes
+
+        if ($user->invite_sent_at && now()->diffInMinutes($user->invite_sent_at) < 2) {
+
+            return response()->json([
+
+                'message' => 'Please wait before resending invite again.'
+
+            ], 429);
+
+        }
+
         SupabaseHelper::invite($user->email);
 
         $user->update([

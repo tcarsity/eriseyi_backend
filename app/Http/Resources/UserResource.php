@@ -1,39 +1,133 @@
 <?php
 
+
+
 namespace App\Http\Resources;
 
+
+
 use Illuminate\Http\Request;
+
 use Illuminate\Http\Resources\Json\JsonResource;
+
 use Carbon\Carbon;
 
+
+
 class UserResource extends JsonResource
+
 {
+
     /**
+
      * Transform the resource into an array.
+
      *
+
      * @return array<string, mixed>
+
      */
+
     public function toArray(Request $request): array
+
     {
+
         return [
+
             'id' => $this->id,
+
             'name' => $this->name,
-            'email' => $this->when(auth()->check() && auth()->user()->role === 'superadmin', $this->email),
+
+            'email' => $this->when(
+
+                auth()->check() && auth()->user()->role === 'superadmin',
+
+                $this->email
+
+            ),
+
             'role' => $this->role,
+
             'status' => $this->status,
-            'invite_status' => $this->invite_status,
+
+
+
+            // 🔥 Important change here
+
+            'invite_display_status' => $this->getDisplayStatus(),
+
+
+
+            'invite_status' => $this->invite_status, // optional (can remove later)
+
             'invite_sent_at' => $this->invite_sent_at,
+
+
+
             'last_seen' => $this->last_seen,
+
             'is_active' => $this->last_seen
+
                 ? Carbon::parse($this->last_seen)->gt(now()->subSeconds(60))
+
                 : false,
+
         ];
+
     }
+
+    /**
+
+     * Compute invite display status
+
+     */
+
+    private function getDisplayStatus()
+    {
+
+        // If account is permanently activated
+
+        if ($this->invite_status === 'active') {
+
+            return 'active';
+
+        }
+
+        // If invite was sent
+
+        if ($this->invite_sent_at) {
+
+            // If within 24 hours
+
+            if (now()->diffInHours($this->invite_sent_at) < 24) {
+
+                return 'pending';
+
+            }
+
+            // Expired
+
+            return 'resend';
+
+        }
+
+        // Default fallback
+
+        return 'resend';
+
+    }
+
+
 
     public function with($request)
     {
+
         return [
-            'status' => 'success'
+
+            'status' => 'success',
+
         ];
+
     }
+
 }
