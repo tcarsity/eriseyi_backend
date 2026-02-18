@@ -204,9 +204,8 @@ class AdminController extends Controller
         SupabaseHelper::invite($user->email);
 
         $user->update([
-
+            'invite_status' => 'pending',
             'invite_sent_at' => now(),
-
         ]);
 
         return response()->json([

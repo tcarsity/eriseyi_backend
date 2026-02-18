@@ -90,7 +90,16 @@ class AuthController extends Controller
         cache()->forget($lockoutKey);
         cache()->forget($expiresKey);
 
-        $user->update(['status' => 'active']);
+        // Activate account on first successful login
+        $updateData = ['status' => 'active'];
+
+        if ($user->invite_status === 'pending') {
+
+            $updateData['invite_status'] = 'active';
+
+        }
+
+        $user->update($updateData);
 
         $token = $user->createToken('token')->plainTextToken;
 
