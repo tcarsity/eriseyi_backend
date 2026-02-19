@@ -146,9 +146,18 @@ class MemberController extends Controller
 
         if($request->filled('search')) {
             $search = $request->input('search');
-            $query->where('name', 'LIKE', "%{$search}%");
-            $query->orWhere('birth_month', 'LIKE', "%{$search}%");
-        }
+
+            $query->where(function ($q) use ($search) {
+
+            $q->where('name', 'ILIKE', "%{$search}%")
+
+              ->orWhere('birth_month', 'ILIKE', "%{$search}%")
+
+              ->orWhere('gender', 'ILIKE', "%{$search}%");
+
+        });
+
+    }
 
         $members = $query->latest()->paginate(10);
 

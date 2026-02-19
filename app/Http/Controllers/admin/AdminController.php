@@ -142,7 +142,7 @@ class AdminController extends Controller
 
        if($request->filled('search')) {
             $search = $request->input('search');
-            $query->where('name', 'LIKE', "%{$search}%");
+            $query->where('name', 'ILIKE', "%{$search}%");
        }
 
        $admins = $query->latest()->paginate(10);
