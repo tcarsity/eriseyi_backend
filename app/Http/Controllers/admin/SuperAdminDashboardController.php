@@ -25,6 +25,39 @@ class SuperAdminDashboardController extends Controller
             'testimonials' => ['count' => Testimonial::latest()->take(4)->count()],
         ];
 
+        // 🔥 Gender breakdown
+
+        $genderCounts = Member::selectRaw('LOWER(gender) as gender, COUNT(*) as total')
+
+            ->groupBy('gender')
+
+            ->pluck('total', 'gender');
+
+        $data['members']['male'] = $genderCounts['male'] ?? 0;
+
+        $data['members']['female'] = $genderCounts['female'] ?? 0;
+
+
+        // Incase I want to return percentage in future
+
+        // $total = $data['members']['count'];
+
+        // $data['members']['male_percentage'] = $total > 0
+
+        //     ? round(($data['members']['male'] / $total) * 100, 1)
+
+        //     : 0;
+
+
+
+        // $data['members']['female_percentage'] = $total > 0
+
+        //     ? round(($data['members']['female'] / $total) * 100, 1)
+
+        //     : 0;
+
+
+
         // New members trend (last 7 days)
         $trend = Member::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->where('created_at', '>=', now()->subDays(7))

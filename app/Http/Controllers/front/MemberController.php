@@ -155,7 +155,7 @@ class MemberController extends Controller
 
             ->orWhereRaw('LOWER(gender) = ?', [strtolower($search)]);
 
-});
+        });
 
     }
 
