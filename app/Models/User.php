@@ -35,6 +35,45 @@ class User extends Authenticatable
 
 
 
+
+    protected $casts = [
+
+        'invite_sent_at' => 'datetime',
+
+    ];
+
+    public function getInviteStatus()
+    {
+
+            // If account is permanently activated
+
+                if ($this->invite_status === 'active') {
+
+                return 'active';
+
+            }
+
+            if (
+
+                $this->invite_status === 'pending' &&
+
+                $this->invite_sent_at &&
+
+                $this->invite_sent_at->gt(now()->subHours(24))
+
+            ) {
+
+                return 'pending';
+
+            }
+
+
+
+            return 'resend';
+
+    }
+
+
     public function members()
     {
         return $this->hasMany(Member::class, 'created_by');
