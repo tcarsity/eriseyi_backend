@@ -85,37 +85,41 @@ class UserResource extends JsonResource
     private function getDisplayStatus()
     {
 
-        // If account is permanently activated
+            // If account is permanently activated
 
-        if ($this->invite_status === 'active') {
+                if ($this->invite_status === 'active') {
 
-            return 'active';
+                return 'active';
 
-        }
+            }
 
-        // If invite was sent
 
-        if ($this->invite_sent_at) {
 
-            // If within 24 hours
+            if (
 
-            if (now()->diffInHours($this->invite_sent_at) < 24) {
+                $this->invite_status === 'pending' &&
+
+                $this->invite_sent_at &&
+
+                $this->invite_sent_at->gt(now()->subHours(24))
+
+            ) {
 
                 return 'pending';
 
             }
 
-            // Expired
+
 
             return 'resend';
 
-        }
-
-        // Default fallback
-
-        return 'resend';
-
     }
+
+        protected $casts = [
+
+            'invite_sent_at' => 'datetime',
+
+        ];
 
 
 
