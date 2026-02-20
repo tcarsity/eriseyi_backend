@@ -151,11 +151,11 @@ class MemberController extends Controller
 
             $q->where('name', 'ILIKE', "%{$search}%")
 
-              ->orWhere('birth_month', 'ILIKE', "%{$search}%")
+            ->orWhere('birth_month', 'ILIKE', "%{$search}%")
 
-              ->orWhere('gender', 'ILIKE', "%{$search}%");
+            ->orWhereRaw('LOWER(gender) = ?', [strtolower($search)]);
 
-        });
+});
 
     }
 
