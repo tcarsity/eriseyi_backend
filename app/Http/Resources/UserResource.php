@@ -54,7 +54,7 @@ class UserResource extends JsonResource
 
             // 🔥 Important change here
 
-            'invite_display_status' => $this->invite_display_status,
+            'invite_display_status' => $this->getDisplayStatus(),
 
 
 
@@ -81,6 +81,39 @@ class UserResource extends JsonResource
      * Compute invite display status
 
      */
+
+    private function getDisplayStatus()
+    {
+
+            // If account is permanently activated
+
+                if ($this->invite_status === 'active') {
+
+                return 'active';
+
+            }
+
+
+
+            if (
+
+                $this->invite_status === 'pending' &&
+
+                $this->invite_sent_at &&
+
+                $this->invite_sent_at->gt(now()->subHours(24))
+
+            ) {
+
+                return 'pending';
+
+            }
+
+
+
+            return 'resend';
+
+    }
 
 
 
