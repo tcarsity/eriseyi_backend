@@ -203,7 +203,8 @@ class AdminController extends Controller
 
         // 🔥 Prevent spamming resend within 2 minutes
 
-        if ($user->invite_sent_at && now()->diffInMinutes($user->invite_sent_at) < 2) {
+        if ($user->invite_sent_at &&
+            now()->lt($user->invite_sent_at->copy()->addMinutes(2))) {
 
             return response()->json([
 
