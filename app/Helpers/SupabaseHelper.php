@@ -95,4 +95,87 @@ class SupabaseHelper
 
     }
 
+
+    public static function deleteUser($email)
+
+    {
+
+        $headers = [
+
+            'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
+
+            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
+
+            'Content-Type' => 'application/json',
+
+        ];
+
+
+
+        // Step 1: Fetch user by email
+
+        $response = Http::withHeaders($headers)
+
+            ->get(env('SUPABASE_URL') . '/auth/v1/admin/users', [
+
+                'email' => $email
+
+            ]);
+
+
+
+        if (!$response->successful()) {
+
+            \Log::error('Supabase fetch user for delete failed', [
+
+                'response' => $response->body()
+
+            ]);
+
+            return false;
+
+        }
+
+
+
+        $user = $response->json()['users'][0] ?? null;
+
+
+
+        if (!$user) {
+
+            \Log::error('Supabase user not found for delete: ' . $email);
+
+            return false;
+
+        }
+
+
+
+        // Step 2: Delete user by ID
+
+        $delete = Http::withHeaders($headers)
+
+            ->delete(env('SUPABASE_URL') . '/auth/v1/admin/users/' . $user['id']);
+
+
+
+        if (!$delete->successful()) {
+
+            \Log::error('Supabase delete failed', [
+
+                'response' => $delete->body()
+
+            ]);
+
+            return false;
+
+        }
+
+
+
+        return true;
+
+    }
+
 }

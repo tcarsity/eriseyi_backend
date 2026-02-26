@@ -98,7 +98,20 @@ class AdminController extends Controller
 
     public function destroy(User $user)
     {
-        $user->delete();
+        if (SupabaseHelper::deleteUser($user->email)) {
+
+            $user->delete();
+
+        } else {
+
+            return response()->json([
+
+                'message' => 'Failed to delete auth user.'
+
+            ], 500);
+
+        }
+
 
         return response()->json(['message' => 'Admin deleted successfully']);
     }
