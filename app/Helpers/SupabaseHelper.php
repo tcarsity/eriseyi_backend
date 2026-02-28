@@ -69,8 +69,8 @@ class SupabaseHelper
         if (!$response->successful()) {
 
             Log::error('Supabase invite failed', [
-                'status' => $response->status(),
-                'body' => $response->body()
+
+                'response' => $response->body()
 
             ]);
 
