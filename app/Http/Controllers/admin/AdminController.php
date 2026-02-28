@@ -11,6 +11,7 @@ use App\Http\Resources\UserResource;
 use App\Helpers\SupabaseHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
