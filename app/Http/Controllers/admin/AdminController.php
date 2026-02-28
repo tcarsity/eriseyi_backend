@@ -25,22 +25,15 @@ class AdminController extends Controller
 
     public function store(Request $request)
     {
-
         $validated = $request->validate([
-
             'name' => 'required|string|max:255',
-
             'email' => 'required|email|unique:users,email',
 
         ]);
 
-
         if (!SupabaseHelper::invite($validated['email'])) {
-
             return response()->json([
-
                 'message' => 'Failed to send invite.'
-
             ], 500);
 
         }
@@ -48,51 +41,29 @@ class AdminController extends Controller
         DB::beginTransaction();
 
         try {
-
             $admin = User::create([
-
                 'name' => $validated['name'],
-
                 'email' => $validated['email'],
-
                 'password' => null,
-
                 'invite_status' => 'pending',
-
                 'invite_sent_at' => now(),
-
                 'role' => 'admin'
-
             ]);
-
 
             DB::commit();
 
-
             return (new UserResource($admin))
-
                 ->additional([
-
                     'message' => 'Admin added successfully and invite sent'
-
                 ]);
 
-
-
         } catch (\Exception $e) {
-
-
             DB::rollBack();
 
-
             return response()->json([
-
                 'message' => 'Something went wrong while creating admin.'
-
             ], 500);
-
         }
-
     }
 
 
@@ -104,13 +75,9 @@ class AdminController extends Controller
 
     public function update(Request $request, User $user)
     {
-
         $validated = $request->validate([
-
             'name' => 'sometimes|string|max:255',
-
             'email' => 'sometimes|string|email|unique:users,email,' . $user->id,
-
         ]);
 
         $oldEmail = $user->email;
@@ -119,21 +86,14 @@ class AdminController extends Controller
 
             && $validated['email'] !== $oldEmail;
 
-
         // If email changed, update Supabase first
 
         if ($emailChanged) {
-
             if (!SupabaseHelper::updateEmail($oldEmail, $validated['email'])) {
-
                 return response()->json([
-
                     'message' => 'Failed to update email in authentication system.'
-
                 ], 500);
-
             }
-
         }
 
         // Now safe to update local DB
@@ -141,13 +101,9 @@ class AdminController extends Controller
         $user->update($validated);
 
         return (new UserResource($user))
-
             ->additional([
-
                 'message' => 'Admin updated successfully'
-
             ]);
-
     }
 
 
