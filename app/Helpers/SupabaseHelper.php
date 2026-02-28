@@ -2,11 +2,13 @@
 
 namespace App\Helpers;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class SupabaseHelper
 {
 
-    public static function invite($email)
+
+    private static function client()
     {
 
         return Http::withHeaders([
@@ -17,48 +19,93 @@ class SupabaseHelper
 
             'Content-Type' => 'application/json',
 
-        ])->post(
-            env('SUPABASE_URL') . '/auth/v1/invite?redirect_to=' . urlencode(env('FRONTEND_URL') . '/reset-password'),
-            [
-
-            'email' => $email,
-
-            ]
-        );
+        ]);
 
     }
+
+
+    private static function baseUrl()
+    {
+
+        return rtrim(env('SUPABASE_URL'), '/');
+
+    }
+
+
+
+    // public static function invite($email)
+    // {
+
+    //     return Http::withHeaders([
+
+    //         'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
+
+    //         'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
+
+    //         'Content-Type' => 'application/json',
+
+    //     ])->post(
+    //         env('SUPABASE_URL') . '/auth/v1/invite?redirect_to=' . urlencode(env('FRONTEND_URL') . '/reset-password'),
+    //         [
+
+    //         'email' => $email,
+
+    //         ]
+    //     );
+
+    // }
+
+    public static function invite($email)
+    {
+
+        $response = self::client()->post(
+
+            self::baseUrl() . '/auth/v1/invite?redirect_to=' . urlencode(env('FRONTEND_URL') . '/reset-password'),
+
+            ['email' => $email]
+
+        );
+
+        if (!$response->successful()) {
+
+            Log::error('Supabase invite failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+
+            ]);
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+
+
+
 
     public static function updateEmail($oldEmail, $newEmail)
     {
 
-        $headers = [
+        $response = self::client()->get(
 
-            'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
-            'Content-Type' => 'application/json',
+            self::baseUrl() . '/auth/v1/admin/users',
 
-        ];
+            ['email' => $oldEmail]
 
-        // Get user by email
-
-        $response = Http::withHeaders($headers)
-
-            ->get(env('SUPABASE_URL') . '/auth/v1/admin/users', [
-
-                'email' => $oldEmail
-
-            ]);
+        );
 
 
         if (!$response->successful()) {
 
-            \Log::error('Supabase fetch user failed', [
+            Log::error('Supabase fetch user failed', [
 
                 'response' => $response->body()
 
             ]);
 
-            return;
+            return false;
 
         }
 
@@ -66,67 +113,54 @@ class SupabaseHelper
 
         if (!$user) {
 
-            \Log::error('Supabase user not found for email: ' . $oldEmail);
+            Log::error('Supabase user not found: ' . $oldEmail);
 
-            return;
+            return false;
 
         }
 
-        // Update email
+        $update = self::client()->put(
 
-        $update = Http::withHeaders($headers)
+            self::baseUrl() . '/auth/v1/admin/users/' . $user['id'],
 
-            ->put(env('SUPABASE_URL') . '/auth/v1/admin/users/' . $user['id'], [
+            ['email' => $newEmail]
 
-                'email' => $newEmail
-
-            ]);
+        );
 
 
         if (!$update->successful()) {
 
-            \Log::error('Supabase email update failed', [
+            Log::error('Supabase email update failed', [
 
                 'response' => $update->body()
 
             ]);
 
+            return false;
+
         }
+
+        return true;
 
     }
 
 
-    public static function deleteUser($email)
 
+    public static function deleteUser($email)
     {
 
-        $headers = [
+        $response = self::client()->get(
 
-            'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
+            self::baseUrl() . '/auth/v1/admin/users',
 
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
+            ['email' => $email]
 
-            'Content-Type' => 'application/json',
-
-        ];
-
-
-
-        // Step 1: Fetch user by email
-
-        $response = Http::withHeaders($headers)
-
-            ->get(env('SUPABASE_URL') . '/auth/v1/admin/users', [
-
-                'email' => $email
-
-            ]);
-
+        );
 
 
         if (!$response->successful()) {
 
-            \Log::error('Supabase fetch user for delete failed', [
+            Log::error('Supabase fetch user for delete failed', [
 
                 'response' => $response->body()
 
@@ -136,33 +170,29 @@ class SupabaseHelper
 
         }
 
-
-
         $user = $response->json()['users'][0] ?? null;
-
 
 
         if (!$user) {
 
-            \Log::error('Supabase user not found for delete: ' . $email);
+            Log::error('Supabase user not found for delete: ' . $email);
 
             return false;
 
         }
 
 
+        $delete = self::client()->delete(
 
-        // Step 2: Delete user by ID
+            self::baseUrl() . '/auth/v1/admin/users/' . $user['id']
 
-        $delete = Http::withHeaders($headers)
-
-            ->delete(env('SUPABASE_URL') . '/auth/v1/admin/users/' . $user['id']);
+        );
 
 
 
         if (!$delete->successful()) {
 
-            \Log::error('Supabase delete failed', [
+            Log::error('Supabase delete failed', [
 
                 'response' => $delete->body()
 
@@ -172,10 +202,10 @@ class SupabaseHelper
 
         }
 
-
-
         return true;
 
     }
+
+
 
 }
