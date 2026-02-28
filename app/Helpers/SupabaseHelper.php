@@ -70,7 +70,8 @@ class SupabaseHelper
 
             Log::error('Supabase invite failed', [
 
-                'response' => $response->body()
+                'status' => $response->status(),
+                'body' => $response->body()
 
             ]);
 
@@ -86,6 +87,7 @@ class SupabaseHelper
 
 
     public static function updateEmail($oldEmail, $newEmail)
+
     {
 
         $response = self::client()->get(
@@ -97,11 +99,13 @@ class SupabaseHelper
         );
 
 
+
         if (!$response->successful()) {
 
             Log::error('Supabase fetch user failed', [
 
-                'response' => $response->body()
+                'status' => $response->status(),
+                'body' => $response->body()
 
             ]);
 
@@ -109,11 +113,16 @@ class SupabaseHelper
 
         }
 
+
         $user = $response->json()['users'][0] ?? null;
 
         if (!$user) {
 
-            Log::error('Supabase user not found: ' . $oldEmail);
+            Log::error('Supabase user not found', [
+
+                'email' => $oldEmail
+
+            ]);
 
             return false;
 
@@ -132,7 +141,9 @@ class SupabaseHelper
 
             Log::error('Supabase email update failed', [
 
-                'response' => $update->body()
+                'status' => $update->status(),
+
+                'body' => $update->body()
 
             ]);
 
@@ -161,8 +172,8 @@ class SupabaseHelper
         if (!$response->successful()) {
 
             Log::error('Supabase fetch user for delete failed', [
-
-                'response' => $response->body()
+                'status' => $response->status(),
+                'body' => $response->body()
 
             ]);
 
