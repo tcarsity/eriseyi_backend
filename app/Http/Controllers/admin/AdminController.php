@@ -108,26 +108,49 @@ class AdminController extends Controller
         $validated = $request->validate([
 
             'name' => 'sometimes|string|max:255',
+
             'email' => 'sometimes|string|email|unique:users,email,' . $user->id,
 
         ]);
 
+        $oldEmail = $user->email;
+
         $emailChanged = isset($validated['email'])
 
-            && $validated['email'] !== $user->email;
+            && $validated['email'] !== $oldEmail;
+
+
+        // If email changed, update Supabase first
+
+        if ($emailChanged) {
+
+            if (!SupabaseHelper::updateEmail($oldEmail, $validated['email'])) {
+
+                return response()->json([
+
+                    'message' => 'Failed to update email in authentication system.'
+
+                ], 500);
+
+            }
+
+        }
+
+        // Now safe to update local DB
 
         $user->update($validated);
 
-        // 🔥 Sync Supabase if email changed
-
-        if ($emailChanged) {
-            SupabaseHelper::updateEmail($user->email, $validated['email']);
-        }
         return (new UserResource($user))
 
-            ->additional(['message' => 'Admin updated successfully']);
+            ->additional([
+
+                'message' => 'Admin updated successfully'
+
+            ]);
 
     }
+
+
 
     public function destroy(User $user)
     {
