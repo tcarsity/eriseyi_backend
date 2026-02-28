@@ -28,37 +28,69 @@ class AdminController extends Controller
         $validated = $request->validate([
 
             'name' => 'required|string|max:255',
+
             'email' => 'required|email|unique:users,email',
 
         ]);
 
-        $admin = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => null,
-            'invite_status' => 'pending',
-            'invite_sent_at' => now(),
-            'role' => 'admin'
-        ]);
 
-        // 🔥 Invite to Supabase
+        if (!SupabaseHelper::invite($validated['email'])) {
 
-        $response = SupabaseHelper::invite($admin->email);
+            return response()->json([
 
-        if (!$response->successful()) {
+                'message' => 'Failed to send invite.'
 
-            \Log::error('Supabase invite failed', [
+            ], 500);
 
-                'email' => $admin->email,
+        }
 
-                'response' => $response->body(),
+        DB::beginTransaction();
+
+        try {
+
+            $admin = User::create([
+
+                'name' => $validated['name'],
+
+                'email' => $validated['email'],
+
+                'password' => null,
+
+                'invite_status' => 'pending',
+
+                'invite_sent_at' => now(),
+
+                'role' => 'admin'
 
             ]);
 
-        }
-        return (new UserResource($admin))
 
-            ->additional(['message' => 'Admin added successfully and invite sent']);
+            DB::commit();
+
+
+            return (new UserResource($admin))
+
+                ->additional([
+
+                    'message' => 'Admin added successfully and invite sent'
+
+                ]);
+
+
+
+        } catch (\Exception $e) {
+
+
+            DB::rollBack();
+
+
+            return response()->json([
+
+                'message' => 'Something went wrong while creating admin.'
+
+            ], 500);
+
+        }
 
     }
 
