@@ -87,72 +87,46 @@ class SupabaseHelper
 
 
     public static function updateEmail($oldEmail, $newEmail)
-
     {
-
         $response = self::client()->get(
-
             self::baseUrl() . '/auth/v1/admin/users',
-
             ['email' => $oldEmail]
-
         );
-
-
 
         if (!$response->successful()) {
 
             Log::error('Supabase fetch user failed', [
-
                 'status' => $response->status(),
                 'body' => $response->body()
-
             ]);
 
             return false;
-
         }
-
 
         $user = $response->json()['users'][0] ?? null;
 
         if (!$user) {
-
             Log::error('Supabase user not found', [
-
                 'email' => $oldEmail
-
             ]);
-
             return false;
-
         }
 
         $update = self::client()->put(
-
             self::baseUrl() . '/auth/v1/admin/users/' . $user['id'],
-
             ['email' => $newEmail]
 
         );
 
-
         if (!$update->successful()) {
-
             Log::error('Supabase email update failed', [
-
                 'status' => $update->status(),
-
                 'body' => $update->body()
-
             ]);
-
             return false;
-
         }
 
         return true;
-
     }
 
 
