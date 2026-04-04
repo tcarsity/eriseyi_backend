@@ -21,96 +21,81 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+
         $validator = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
         ]);
+
+
 
         $email = $validator['email'];
         $ip = $request->ip();
 
-        // Rate limit key
+
+
         $key = "login_attempts:{$email}:{$ip}";
         $lockoutKey = "{$key}:lockout";
         $expiresKey = "{$key}:expires_at";
 
-        // check if locked out
+
         $attempts = cache()->get($key, 0);
         $isLockedOut = cache()->get($lockoutKey);
 
-        if($isLockedOut)
-        {
+
+
+        if ($isLockedOut) {
             $expiresAt = cache()->get($expiresKey);
             $secondsLeft = $expiresAt ? max(0, $expiresAt - time()) : (4 * 60);
 
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Too many failed attempts. Try again in 4 minutes.'
+                'message' => 'Too many failed attempts. Try again later.'
             ], 429)->header('Retry-After', $secondsLeft);
         }
 
-        // find user
-        $user = User::where('email', $validator['email'])->first();
 
-        // check invalid login
-        if(
-            ! $user ||
-            ! Hash::check($validator['password'], $user->password) ||
-            ! in_array($user->role, [ 'superadmin', 'admin'])
-        ) {
 
-            // Increase failed attempts
+        // Only check user existence + role
+        $user = User::where('email', $email)->first();
+        if (!$user || !in_array($user->role, ['superadmin', 'admin'])) {
+
             $attempts++;
             cache()->put($key, $attempts, now()->addMinutes(4));
 
-            //lockout at 7 minutes
-            if($attempts >= 7)
-            {
+
+
+            if ($attempts >= 7) {
                 cache()->put($lockoutKey, true, now()->addMinutes(4));
                 cache()->put($expiresKey, time() + (4 * 60), now()->addMinutes(4));
             }
 
-                log_security_event('Failed login attempt', [
-                    'email' => $validator['email'],
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                    'attempts' => $attempts,
-                ]);
 
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized',
-                'attempts' => $attempts,
-                'remaining' => max(0, 7 - $attempts)
             ], 401);
         }
 
-        // successfully login
+        // ✅ Clear rate limit
         cache()->forget($key);
         cache()->forget($lockoutKey);
         cache()->forget($expiresKey);
 
-        // Activate account on first successful login
-        $updateData = ['status' => 'active'];
 
+        // ✅ Activate user if needed
         if ($user->invite_status === 'pending') {
-
-            $updateData['invite_status'] = 'active';
+            $user->update([
+                'invite_status' => 'active',
+                'status' => 'active'
+            ]);
 
         }
 
-        $user->update($updateData);
-
+        // Generate token
         $token = $user->createToken('token')->plainTextToken;
-
-        log_security_event('User logged in', [
-            'user_id' => $user->id,
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent()
-        ]);
-
         return (new UserResource($user))->additional([
-            'message' => 'Login Successfully',
+            'message' => 'Login successful',
             'token' => $token
         ]);
     }
@@ -187,66 +172,66 @@ class AuthController extends Controller
 
 
 
-    public function resetPassword(Request $request)
-    {
-        $request->validate([
-            'token' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'min:8', 'confirmed'],
-        ]);
+    // public function resetPassword(Request $request)
+    // {
+    //     $request->validate([
+    //         'token' => ['required'],
+    //         'email' => ['required', 'email'],
+    //         'password' => ['required', 'min:8', 'confirmed'],
+    //     ]);
 
-        $status = Password::reset(
+    //     $status = Password::reset(
 
-            $request->only('email', 'password', 'password_confirmation', 'token'),
+    //         $request->only('email', 'password', 'password_confirmation', 'token'),
 
-            function ($user) use ($request) {
+    //         function ($user) use ($request) {
 
-                // Restrict role again (important)
+    //             // Restrict role again (important)
 
-                if (!in_array($user->role, ['admin', 'superadmin'])) {
+    //             if (!in_array($user->role, ['admin', 'superadmin'])) {
 
-                    abort(403, 'Unauthorized role.');
+    //                 abort(403, 'Unauthorized role.');
 
-                }
+    //             }
 
-                $user->forceFill([
+    //             $user->forceFill([
 
-                    'password' => Hash::make($request->password),
+    //                 'password' => Hash::make($request->password),
 
-                    'remember_token' => Str::random(60),
+    //                 'remember_token' => Str::random(60),
 
-                    'invite_status' => 'active', // ✅ Activate invite
+    //                 'invite_status' => 'active', // ✅ Activate invite
 
-                ])->save();
+    //             ])->save();
 
 
 
-                log_security_event('Password reset successfully', [
+    //             log_security_event('Password reset successfully', [
 
-                    'user_id' => $user->id,
+    //                 'user_id' => $user->id,
 
-                    'ip_address' => $request->ip(),
+    //                 'ip_address' => $request->ip(),
 
-                    'user_agent' => $request->userAgent(),
+    //                 'user_agent' => $request->userAgent(),
 
-                ]);
+    //             ]);
 
-                event(new PasswordReset($user));
+    //             event(new PasswordReset($user));
 
-            }
+    //         }
 
-        );
+    //     );
 
-        if ($status === Password::PASSWORD_RESET) {
-            return response()->json([
-                'message' => 'Password reset successful.',
-            ], 200);
-        }
+    //     if ($status === Password::PASSWORD_RESET) {
+    //         return response()->json([
+    //             'message' => 'Password reset successful.',
+    //         ], 200);
+    //     }
 
-        return response()->json([
-            'message' => 'Invalid token or email.',
-        ], 400);
-    }
+    //     return response()->json([
+    //         'message' => 'Invalid token or email.',
+    //     ], 400);
+    // }
 
     public function updateAdminPassword(Request $request)
     {
